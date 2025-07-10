@@ -100,7 +100,7 @@ h3 {
   border: 1px solid lightgray;
   border-radius: 10px;
   padding: 1rem;
-  min-height: 90%;
+  /* min-height: 90%; */
   width:50vw;
 }
 
@@ -110,7 +110,7 @@ h3 {
   padding: 1rem;
   border: 1px solid lightgray;
   border-radius: 15px;
-  min-height: 90%;
+  /* min-height: 90%; */
 }
 
 #file-stat table {
@@ -375,7 +375,7 @@ h3 {
   align-items:flex-start;
   flex-direction: row;
   gap: 2rem;
-  min-height: 75vh;
+  min-height: fit-content;
 }
 
 
@@ -385,7 +385,7 @@ h3 {
   flex:1;
   gap: 2rem;
   justify-content: center;
-
+  height: 70vh;
 }
 
 /* .custom-row .custom-col {
