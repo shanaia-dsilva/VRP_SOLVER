@@ -29,8 +29,8 @@
     <div class="custom-container">
       <div class="title-text">
         <div class="header">
-          <h1>OSRM Distance Tool</h1>
-          <p class="lead">Easy to use routing tool. Calculates distances automatically for the imported data.</p>
+          <h1>Route Optimization Tool</h1>
+          <p class="lead">Upload route data and optimize driver assignments</p>
         </div>
         <div class="optim-project">
         </div>
@@ -41,11 +41,7 @@
 
   <!-- Description Section -->
   <section id="description-sec">
-    <!-- <p class="section-description">
-      
-    </p> -->
 
-    <!-- Phase Cards -->
     <div class="process-container">
 
       <div class="phase">
@@ -69,6 +65,12 @@
         </div>
         <div class="col">
           <div class="phase-card">
+            <img src="/uploads/export-icon.png" class="project-icon" alt="Optimize" />
+            <p class="project-title">Phase 4<br />Optimize Assignments</p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="phase-card">
             <img src="/uploads/export-icon.png" class="project-icon" alt="Export" />
             <p class="project-title">Phase 4<br />Export Results</p>
           </div>
@@ -77,122 +79,123 @@
 
       <!-- Upload Section -->
       <div class="custom-row">
-        <div class="custom-col">
-          <div class="data-container">
-            <h3>Upload Your Files.</h3>
+        <div class="data-container">
+          <h3>Upload Your Files.</h3>
 
-            <!-- Toggle -->
-            <div class="input-toggle">
-              <button class="btn-toggle" onclick="switchToUpload()">File Upload
-              </button>
-              <button class="btn-toggle" onclick="switchToPaste()">Paste Data
-              </button>
-            </div>
+          <!-- Toggle -->
+          <div class="input-toggle">
+            <button class="btn-toggle" onclick="switchToUpload()">File Upload
+            </button>
+            <button class="btn-toggle" onclick="switchToPaste()">Paste Data
+            </button>
+          </div>
 
-            <!-- File Upload -->
-            <div id="upload-section" class="upload-section">
-              <div class="drag-area" id="drag-area">
-                <form id="csv-form" enctype="multipart/form-data">
-                  <div class="drag-content">
-                    <img src="/uploads/upload-icon.png" width="50" class="mb-3" alt="Drag Drop" />
-                    <div class="header">Drag & Drop</div>
-                    <div class="header">
-                      or <span class="button" onclick="document.getElementById('file-input').click()">browse</span>
-                    </div>
-                    <input type="file" id="file-input" name="file" accept=".csv" hidden />
-                    <div class="support">
-                      Supports: .csv files only<br />(save excel files as .csv to upload)
-                    </div>
-                    <button type="submit" class="upload-btn">
-                        <img src="/uploads/upload-icon.png" width="16" alt="Upload CSV" />Upload CSV
-                      </button>
+          <!-- File Upload -->
+          <div id="upload-section" class="upload-section">
+            <div class="drag-area" id="drag-area">
+              <form id="csv-form" enctype="multipart/form-data">
+                <div class="drag-content">
+                  <img src="/uploads/upload-icon.png" width="50" class="mb-3" alt="Drag Drop" />
+                  <div class="header">Drag & Drop</div>
+                  <div class="header">
+                    or <span class="button" onclick="document.getElementById('file-input').click()">browse</span>
                   </div>
-                </form>
-              </div>
-            </div>
-
-            <!-- Paste Section -->
-            <div id="paste-section" class="paste-section" style="display: none;">
-              <div class="paste-area">
-
-                <div class="paste-container">
-                  <div class="paste-col">
-                    <label for="vehicle-number">Vehicle Number</label>
-                    <textarea id="vehicle-number" class="text-area" rows="10"></textarea>
+                  <input type="file" id="file-input" name="file" accept=".csv" hidden />
+                  <div class="support">
+                    Supports: .csv files only<br />(save excel files as .csv to upload)
                   </div>
-                  <div class="paste-col">
-                    <label for="institute">Institute/ School</label>
-                    <textarea id="institute" class="text-area" rows="10"></textarea>
-                  </div>
-                  <div class="paste-col">
-                    <label for="point1-lat">Point 1 Latitude</label>
-                    <textarea id="point1-lat" class="text-area" rows="10"></textarea>
-                  </div>
-                  <div class="paste-col">
-                    <label for="point1-lon">Point 1 Longitude</label>
-                    <textarea id="point1-lon" class="text-area" rows="10"></textarea>
-                  </div>
-                  <div class="paste-col">
-                    <label for="point2-lat">Point 2 Latitude</label>
-                    <textarea id="point2-lat" class="text-area" rows="10"></textarea>
-                  </div>
-                  <div class="paste-col">
-                    <label for="point2-lon">Point 2 Longitude</label>
-                    <textarea id="point2-lon" class="text-area" rows="10"></textarea>
-                  </div>
+                  <button type="submit" class="upload-btn">
+                    <img src="/uploads/upload-icon.png" width="16" alt="Upload CSV" />Upload CSV
+                  </button>
                 </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Paste Section -->
+          <div id="paste-section" class="paste-section" style="display: none;">
+            <div class="paste-area">
+
+              <div class="paste-container">
+                <div class="paste-col">
+                  <label for="vehicle-number">Vehicle Number</label>
+                  <textarea id="vehicle-number" class="text-area" rows="10"></textarea>
+                </div>
+                <div class="paste-col">
+                  <label for="institute">Institute/ School</label>
+                  <textarea id="institute" class="text-area" rows="10"></textarea>
+                </div>
+                <div class="paste-col">
+                  <label for="point1-lat">Point 1 Latitude</label>
+                  <textarea id="point1-lat" class="text-area" rows="10"></textarea>
+                </div>
+                <div class="paste-col">
+                  <label for="point1-lon">Point 1 Longitude</label>
+                  <textarea id="point1-lon" class="text-area" rows="10"></textarea>
+                </div>
+                <div class="paste-col">
+                  <label for="point2-lat">Point 2 Latitude</label>
+                  <textarea id="point2-lat" class="text-area" rows="10"></textarea>
+                </div>
+                <div class="paste-col">
+                  <label for="point2-lon">Point 2 Longitude</label>
+                  <textarea id="point2-lon" class="text-area" rows="10"></textarea>
+                </div>
+              </div>
 
 
-                <!-- <div class="form-group">
+              <!-- <div class="form-group">
                   <label for="paste-input">Paste your data here:</label>
                   <textarea id="paste-input" class="text-area" rows="10"></textarea>
                 </div> -->
-                <button type="button" class="app-btn" id="process-data-btn" onclick="processPastedData()">Process Data</button>
-                <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
-              </div>
+              <button type="button" class="app-btn" id="process-data-btn" onclick="processPastedData()">Process
+                Data</button>
+              <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
             </div>
-
-            <!-- Status Messages -->
-            <div id="status" class="status-box"></div>
           </div>
-        </div>
 
-        <!-- Requirements Section -->
-        <div class="custom-col">
-          <div id="file-stat">
-            <h3>
-              <img src="/uploads/required.jpg" width="24" class="me-2" alt="Info" />Required CSV Format:
-            </h3>
-            <p>Required columns (exact names):</p>
-            <div class="table-preview-wrapper">
-              <table class="preview">
-                <tr>
-                  <td>Vehicle Number</td>
-                </tr>
-                <tr>
-                  <td>Institute</td>
-                </tr>
-                <tr>
-                  <td>Point 1 latitude</td>
-                </tr>
-                <tr>
-                  <td>Point 1 longitude</td>
-                </tr>
-                <tr>
-                  <td>Point 2 latitude</td>
-                </tr>
-                <tr>
-                  <td>Point 2 longitude</td>
-                </tr>
-              </table>
-            </div>
-            <div class="download-sample-link">
-              <a href="/uploads/sample_distance_generator_data.csv">Download Sample CSV
-              </a>
-            </div>
+          <!-- Status Messages -->
+          <div id="status" class="status-box"></div>
+        </div>
+        <div id="file-stat">
+          <h3>
+            <img src="/uploads/required.jpg" width="24" class="me-2" alt="Info" />Required CSV Format:
+          </h3>
+          <p>Required columns (exact names):</p>
+          <div class="table-preview-wrapper">
+            <table class="preview">
+              <tr>
+                <td>Vehicle Number</td>
+              </tr>
+              <tr>
+                <td>Institute</td>
+              </tr>
+              <tr>
+                <td>Point 1 latitude</td>
+              </tr>
+              <tr>
+                <td>Point 1 longitude</td>
+              </tr>
+              <tr>
+                <td>Point 2 latitude</td>
+              </tr>
+              <tr>
+                <td>Point 2 longitude</td>
+              </tr>
+            </table>
+          </div>
+          <div class="download-sample-link">
+            <a href="/uploads/sample_distance_generator_data.csv">Download Sample CSV
+            </a>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Requirements Section -->
+    
+    </div>
+    </div>
 
     </div>
 

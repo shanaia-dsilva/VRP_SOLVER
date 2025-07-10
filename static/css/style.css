@@ -64,14 +64,15 @@ h3 {
   background-color: beige;
   border-radius: 0px;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  text-align: center;
+  padding: 0.3rem 1rem;
+  text-align: left;
   transition: all 0.3s ease-in-out;
-  flex: 1;
-  max-width: 5rem;
+  display: flex;
+  flex-direction: row;
+  max-width: 12rem;
   border-radius: 15px;
   align-items: center ;
-  justify-content: center;
+  justify-content: left;
 }
 
 .phase-card:hover {
@@ -88,18 +89,10 @@ h3 {
   font-size: 14px;
   color: #555;
   margin: 0;
+  display: inline-block;
 }
 
-/* Row and Column Structure */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-}
 
-.col-md-6 {
-  flex: 1 1 48%;
-}
 
 /* Upload + Paste Container */
 .data-container {
@@ -505,7 +498,7 @@ img {
 
   .phase {
     display: grid;
-    grid-template-columns: repeat(4, 2fr); /* Use fractions for equal spacing */
+    grid-template-columns: repeat(5, 2fr); /* Use fractions for equal spacing */
     gap: 1rem;
     width: 100%;
   }

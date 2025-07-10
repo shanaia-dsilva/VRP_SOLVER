@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Create the Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-key-Shanaia_Baghirathi!@#$")
+app.secret_key = os.environ.get("SESSION_SECRET", "dev-key-Shanaia_Baghirathi!@#$$%^&FLASFKJAS")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.route('/uploads/<path:filename>')
