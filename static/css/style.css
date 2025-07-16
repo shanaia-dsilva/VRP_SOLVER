@@ -1,4 +1,3 @@
-/* Base layout */
 body {
   background-color: ivory;
   font-family: Verdana, 'Courier New', Courier, monospace, Geneva, Tahoma, sans-serif;
@@ -22,7 +21,6 @@ body {
   margin-right: 10px;
 }
 
-/* Dashboard */
 #dashboard-sec {
   margin: 1rem 2rem;
 }
@@ -36,13 +34,11 @@ h3 {
   font-size: medium;
   margin: 0.5rem 0;
 }
-.lead {
+p {
   color: rgb(138, 112, 75);
   font-size: small;
   margin: 0;
 }
-
-/* Description */
 #description-sec {
   margin: 1rem 2.5rem;
 }
@@ -50,8 +46,6 @@ h3 {
 .text-center {
   text-align: center;
 }
-
-/* Phase cards */
 .phase {
   display: flex;
   flex-direction: column;
@@ -64,12 +58,12 @@ h3 {
   background-color: beige;
   border-radius: 0px;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-  padding: 0.3rem 1rem;
+  padding: 1rem 1.7rem;
   text-align: left;
   transition: all 0.3s ease-in-out;
   display: flex;
   flex-direction: row;
-  max-width: 12rem;
+  max-width:6rem;
   border-radius: 15px;
   align-items: center ;
   justify-content: left;
@@ -86,51 +80,56 @@ h3 {
 }
 
 .project-title {
-  font-size: 14px;
+  font-size: small;
   color: #555;
   margin: 0;
-  display: inline-block;
+  /* display: inline-block; */
 }
 
+#depot-mapping {
+  width: 100%;
+  min-height: 30vh;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  resize: none; 
+  background-color: #fffefc;
+  box-sizing: border-box;
+}
 
-
-/* Upload + Paste Container */
 .data-container {
   background-color: beige;
   border: 1px solid lightgray;
   border-radius: 10px;
   padding: 1rem;
-  /* min-height: 90%; */
-  width:50vw;
+  width:130%;
 }
 
-/* CSV Format Card */
 #file-stat {
   background-color: beige;
   padding: 1rem;
   border: 1px solid lightgray;
   border-radius: 15px;
-  /* min-height: 90%; */
 }
 
-#file-stat table {
-  width: 100%;
-  border-top: 1px solid #e5b79e;
-  border-right: 1px solid #e5b79e;
-  border-left: 1px solid #e5b79e;
-  border-radius: 5px;
-  border:collapse;
-  /* border-bottom: 0px; */
-  font-family: 'Courier New', Courier, monospace;
+strong {
+  color:#18427a;
+}
+
+.table-wrapper {
+  border: solid 1px #cb997e;
+  border-bottom: none;
+  border-radius: 10px;
   font-size: small;
-  margin: 1rem 0;
-  max-width: 90%;
+  font-family: 'Courier New', Courier, monospace;
+  overflow-x: auto;
+  margin: 0.5rem;
 }
 
 #file-stat th,
 #file-stat td {
   border-bottom: 1px solid #e5b79e;
-  
   padding: 6px 10px;
   text-align: left;
 }
@@ -154,7 +153,6 @@ h3 {
   border: 1px solid  rgb(223, 223, 190);
 }
 
-/* Drag Area */
 .drag-area {
   border: 2px dashed #dddcdc;
   position: relative;
@@ -196,7 +194,6 @@ h3 {
   margin-top: 10px;
 }
 
-/* Upload + Paste buttons */
 .input-toggle {
   margin-bottom: 1rem;
   display: flex;
@@ -217,62 +214,39 @@ h3 {
   background-color: #cb997e;
   border: 1px solid #cb997e;
 }
-
 .paste-section {
-  font-size: small;
+  width: 100%;
+  padding: 0.5rem 0;
 }
-/* Text Area Paste */
 .paste-container {
   display: flex;
-  overflow-x: auto;
-  /* gap: 0.2rem; */
-  padding: 1rem 1rem;
-}
-
-.paste-col {
-  flex: 0 0 16%;
-  display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  /* border: 1px solid #ccc; */
-  /* border-radius: 6px; */
+  width: 100%;
+  gap: 0.5rem;
 }
-
-.paste-col label {
-  font-weight: bold;
-  font-size: small;
-  margin-bottom: 0.25rem;
-  /* height: 1.2rem; */
-  display: flex;
-  align-items: flex-end;
-  text-align: center;
-  width:100%;
-  background-color: #f2f9fdb7;
-  border-right: #555 solid 1px;
-  border-left: #555 solid 1px;
-  padding:6px 0;
-}
-
-
-.text-area {
-  resize: vertical;
-  width: 82%;
-  padding: 0.5rem;
-  font-family: inherit;
+.depot-label {
   font-size: 0.9rem;
-  background-color: beige;
+  font-weight: 600;
+  padding-left: 0.3rem;
+  color: #333;
 }
-
-.paste-area textarea {
-  /* width: 95%; */
-  min-height:30vh;
+.depot-textarea {
+  width: 100%;
+  height: 20vh;
+  resize: none; 
   font-family: 'Courier New', Courier, monospace;
-  font-size: 0.8rem;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border:collapse;
-  /* border-radius: 6px; */
+  font-size: 0.85rem;
+  padding: 0.75rem;
+  border: 1px solid #aaa;
+  background-color: #fffef8;
+  box-sizing: border-box;
+  line-height: 1.4;
+  border-radius: 4px;
+}
+.paste-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .upload-btn {
@@ -292,18 +266,6 @@ h3 {
   background-color: #e5b79e;
   color: black;
 }
-
-/* Preview + Results Tables */
-.table-wrapper {
-  border: 1px solid lightgray;
-  border-radius: 10px;
-  padding: 1rem;
-  font-size: small;
-  font-family: 'Courier New', Courier, monospace;
-  overflow-x: auto;
-  margin: 0 0 1rem 0;
-}
-
 .table-preview {
   width: 100%;
   font-family: 'Courier New', Courier, monospace;
@@ -335,9 +297,6 @@ h3 {
   font-weight: 200;
   background-color: #687a92;
 } */
-
-
-/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -378,20 +337,14 @@ h3 {
   min-height: fit-content;
 }
 
-
 .custom-row {
   display:flex;
   flex-direction: row;
   flex:1;
-  gap: 2rem;
+  gap: 1rem;
   justify-content: center;
-  height: 70vh;
+  min-height: 80%;
 }
-
-/* .custom-row .custom-col {
-  width:40vw;
-} */
-
 .results-table {
   width: 100%;
   font-family: 'Courier New', Courier, monospace;
@@ -427,13 +380,6 @@ h3 {
   background-color: #cb997e;
   border: 1px solid #cb997e;
 }
-
-.me-2 {
-  display: inline-block;
-  justify-content: center;
-  align-items: center;
-}
-
 .btn-toggle {
   background-color: beige;
   transition: ease-in-out 0.2s;
@@ -446,14 +392,12 @@ h3 {
   border: 1px solid #cb997e;
 
 }
-
 img {
   vertical-align: middle;
   margin-right: 8px;
   height: 25px; 
   width: inherit;
 }
-
 #results-sect {
   border: 1px solid lightgray;
   border-radius: 10px;
@@ -479,6 +423,10 @@ img {
   border-radius: 10px;
 }
 @media (max-width: 1000px) {
+  body, section{
+    margin:0; padding:0;
+    top:0; left:0;
+  }
   .custom-row {
     display: flex;
     flex-direction: column;
@@ -513,10 +461,14 @@ img {
 }
 
 @media (max-width: 580px) {
+  body, 
+  section{
+    margin:0; padding:0;
+  }
   .phase {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 2x2 grid */
-    gap: 1rem; /* Actual gap value */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 1rem; 
     width: 100%;
     box-sizing: border-box;
   }
@@ -536,10 +488,4 @@ img {
   }
 }
 
-
-@media (max-width: 1200px) {
-  body {
-    padding:6%;
-  }
-}
 

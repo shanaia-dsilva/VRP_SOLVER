@@ -6,15 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OSRM Distance Calculator</title>
 
-  <!-- CSS -->
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
 
-  <!-- JavaScript -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </head>
 
 <body>
-  <!-- Navigation -->
   <nav id="nav-bar">
     <div class="custom-container">
       <div class="nav-content">
@@ -24,7 +21,6 @@
     </div>
   </nav>
 
-  <!-- Dashboard Section -->
   <section id="dashboard-sec">
     <div class="custom-container">
       <div class="title-text">
@@ -39,7 +35,6 @@
 
   <hr class="section-divider" />
 
-  <!-- Description Section -->
   <section id="description-sec">
 
     <div class="process-container">
@@ -53,7 +48,7 @@
         </div>
         <div class="col">
           <div class="phase-card">
-            <img src="/uploads/optimize-icon.png" class="project-icon" alt="Processing" />
+            <img src="/uploads/process.png" class="project-icon" alt="Processing" />
             <p class="project-title">Phase 2<br />Data Processing</p>
           </div>
         </div>
@@ -65,7 +60,7 @@
         </div>
         <div class="col">
           <div class="phase-card">
-            <img src="/uploads/export-icon.png" class="project-icon" alt="Optimize" />
+            <img src="/uploads/optimize-icon.png" class="project-icon" alt="Optimize" />
             <p class="project-title">Phase 4<br />Optimize Assignments</p>
           </div>
         </div>
@@ -77,20 +72,14 @@
         </div>
       </div>
 
-      <!-- Upload Section -->
       <div class="custom-row">
         <div class="data-container">
           <h3>Upload Your Files.</h3>
-
-          <!-- Toggle -->
           <div class="input-toggle">
-            <button class="btn-toggle" onclick="switchToUpload()">File Upload
-            </button>
-            <button class="btn-toggle" onclick="switchToPaste()">Paste Data
-            </button>
+            <button class="btn-toggle" onclick="switchToUpload()">File Upload</button>
+            <button class="btn-toggle" onclick="switchToPaste()">Parking Locations</button>
           </div>
 
-          <!-- File Upload -->
           <div id="upload-section" class="upload-section">
             <div class="drag-area" id="drag-area">
               <form id="csv-form" enctype="multipart/form-data">
@@ -112,108 +101,79 @@
             </div>
           </div>
 
-          <!-- Paste Section -->
           <div id="paste-section" class="paste-section" style="display: none;">
-            <div class="paste-area">
+            <div class="paste-container">
 
-              <div class="paste-container">
-                <div class="paste-col">
-                  <label for="vehicle-number">Vehicle Number</label>
-                  <textarea id="vehicle-number" class="text-area" rows="10"></textarea>
-                </div>
-                <div class="paste-col">
-                  <label for="institute">Institute/ School</label>
-                  <textarea id="institute" class="text-area" rows="10"></textarea>
-                </div>
-                <div class="paste-col">
-                  <label for="point1-lat">Point 1 Latitude</label>
-                  <textarea id="point1-lat" class="text-area" rows="10"></textarea>
-                </div>
-                <div class="paste-col">
-                  <label for="point1-lon">Point 1 Longitude</label>
-                  <textarea id="point1-lon" class="text-area" rows="10"></textarea>
-                </div>
-                <div class="paste-col">
-                  <label for="point2-lat">Point 2 Latitude</label>
-                  <textarea id="point2-lat" class="text-area" rows="10"></textarea>
-                </div>
-                <div class="paste-col">
-                  <label for="point2-lon">Point 2 Longitude</label>
-                  <textarea id="point2-lon" class="text-area" rows="10"></textarea>
-                </div>
+              <label for="depot-mapping" class="depot-label">Institute-wise Depot List</label>
+              <textarea id="depot-mapping" class="depot-textarea" placeholder="Eg: NPS Parking, DPS Mallasandra, MAHE Parking
+              Disclaimer: Not Hubs like Hoodi hub/ Baghirathi Shed, where any institute bus can be parked."></textarea>
+
+              <div class="paste-buttons">
+                <button type="button" class="app-btn" id="process-data-btn" onclick="processPastedData()">Process
+                  Data</button>
+                <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
               </div>
-
-
-              <!-- <div class="form-group">
-                  <label for="paste-input">Paste your data here:</label>
-                  <textarea id="paste-input" class="text-area" rows="10"></textarea>
-                </div> -->
-              <button type="button" class="app-btn" id="process-data-btn" onclick="processPastedData()">Process
-                Data</button>
-              <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
             </div>
           </div>
 
-          <!-- Status Messages -->
           <div id="status" class="status-box"></div>
         </div>
         <div id="file-stat">
           <h3>
-            <img src="/uploads/required.jpg" width="24" class="me-2" alt="Info" />Required CSV Format:
+            <img src="/uploads/required.jpg" width="24" class="project-icon" alt="Info" />Required CSV Format:
           </h3>
           <p>Required columns (exact names):</p>
-          <div class="table-preview-wrapper">
-            <table class="preview">
+          <div class="table-wrapper">
+            <table>
               <tr>
                 <td>Vehicle Number</td>
-              </tr>
-              <tr>
                 <td>Institute</td>
               </tr>
               <tr>
-                <td>Point 1 latitude</td>
+                <td>Category</td>
+                <td>Route Number.</td>
               </tr>
               <tr>
-                <td>Point 1 longitude</td>
+                <td>Driver Employee ID</td>
+                <td>Licensed Experience (in years)</td>
               </tr>
               <tr>
-                <td>Point 2 latitude</td>
+                <td>Driver point Name</td>
+                <td>Driver point Latitude</td>
               </tr>
               <tr>
-                <td>Point 2 longitude</td>
+                <td>Driver point Longitude</td>
+                <td>1st Pickup Pt. Latitude</td>
+              </tr>
+              <tr>
+                <td>1st Pickup Pt. Longitude</td>
+                <td>1st Pickup Point Name</td>
               </tr>
             </table>
           </div>
           <div class="download-sample-link">
-            <a href="/uploads/sample_distance_generator_data.csv">Download Sample CSV
-            </a>
+            <a href="/uploads/sample-data.csv">Download Sample CSV</a>
           </div>
+          <br>
+          <p>Note: Please enter a list of names of depot/parking locations present in the uploaded data that are
+            <strong>institute-specific</strong>, if there are none leave it blank
+          </p>
         </div>
       </div>
-    </div>
-
-    <!-- Requirements Section -->
-    
-    </div>
-    </div>
 
     </div>
-
-    <!-- Preview Section -->
-    <div class="preview-section" id="preview-section" style="display: none;">
-      <div class="table-wrapper">
-        <h4>Preview of your data:</h4>
-        <p id="preview-info">(First 5 rows)</p>
-        <table class="table-preview" id="preview-table"></table>
-        <div class="calculate-button-wrapper">
-          <button class="app-btn" onclick="calculateDistances()" id="app-btn">
-            <img src="/uploads/route.png" width="16" alt="Calculate" />Calculate Distances
-          </button>
-        </div>
+  </section>
+  <section id="preview-section" class="preview-section" style="display: none;">
+    <div class="table-wrapper">
+      <h4>Preview of your data:</h4>
+      <p id="preview-info">(First 5 rows)</p>
+      <table class="table-preview" id="preview-table"></table>
+      <div class="calculate-button-wrapper">
+        <button class="app-btn" onclick="calculateDistances()" id="app-btn">
+          <img src="/uploads/route.png" width="16" alt="Calculate" />Calculate Distances
+        </button>
       </div>
     </div>
-
-
   </section>
 
   <section id="results-sect">
