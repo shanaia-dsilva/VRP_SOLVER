@@ -38,37 +38,26 @@
   <section id="description-sec">
 
     <div class="process-container">
-
       <div class="phase">
-        <div class="col">
-          <div class="phase-card" onclick="document.getElementById('file-input').click()">
-            <img src="/uploads/upload.png" class="project-icon" alt="Upload" />
-            <p class="project-title">Phase 1<br />Upload Your Data</p>
-          </div>
+        <div class="phase-card" onclick="document.getElementById('file-input').click()">
+          <img src="/uploads/upload.png" class="project-icon" alt="Upload" />
+          <p class="project-title"><strong>Phase 1</strong>Upload Your Data</p>
         </div>
-        <div class="col">
-          <div class="phase-card">
-            <img src="/uploads/process.png" class="project-icon" alt="Processing" />
-            <p class="project-title">Phase 2<br />Data Processing</p>
-          </div>
+        <div class="phase-card">
+          <img src="/uploads/process.png" class="project-icon" alt="Processing" />
+          <p class="project-title"><strong>Phase 2</strong>Data Processing</p>
         </div>
-        <div class="col">
-          <div class="phase-card">
-            <img src="/uploads/route.png" class="project-icon" alt="Calculation" />
-            <p class="project-title">Phase 3<br />Distance Calculation</p>
-          </div>
+        <div class="phase-card">
+          <img src="/uploads/route.png" class="project-icon" alt="Calculation" />
+          <p class="project-title"><strong>Phase 3</strong>Distance Calculation</p>
         </div>
-        <div class="col">
-          <div class="phase-card">
-            <img src="/uploads/optimize-icon.png" class="project-icon" alt="Optimize" />
-            <p class="project-title">Phase 4<br />Optimize Assignments</p>
-          </div>
+        <div class="phase-card">
+          <img src="/uploads/optimize-icon.png" class="project-icon" alt="Optimize" />
+          <p class="project-title"><strong>Phase 4</strong>Optimize Assignments</p>
         </div>
-        <div class="col">
-          <div class="phase-card">
-            <img src="/uploads/export-icon.png" class="project-icon" alt="Export" />
-            <p class="project-title">Phase 5<br />Export Results</p>
-          </div>
+        <div class="phase-card">
+          <img src="/uploads/export-icon.png" class="project-icon" alt="Export" />
+          <p class="project-title"><strong>Phase 5</strong>Export Results</p>
         </div>
       </div>
 
@@ -104,7 +93,7 @@
           <div id="paste-section" class="paste-section" style="display: none;">
             <div class="paste-container">
 
-              <label for="depot-mapping" class="depot-label">Institute-wise Depot List</label>
+              <label for="depot-mapping" class="depot-label">Institute-wise Depot List<br/></label>
               <textarea id="depot-mapping" class="depot-textarea" placeholder="Eg: NPS Parking, DPS Mallasandra, MAHE Parking
               Disclaimer: Not Hubs like Hoodi hub/ Baghirathi Shed, where any institute bus can be parked."></textarea>
 
@@ -184,7 +173,7 @@
         <div id="results-summary" class="summary"></div>
         <div class="export">
           <button class="app-btn" onclick="exportResults()" id="export-btn">
-            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" /><br>Download <br>Results
+            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download Results
           </button>
         </div>
       </div>
