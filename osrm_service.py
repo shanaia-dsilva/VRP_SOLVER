@@ -3,7 +3,8 @@ import pandas as pd
 import logging
 import time
 from urllib.parse import urljoin
-from app import app
+import numpy as np
+from config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class OSRMService:
         return OSRMService.DEFAULT_HUB_CAPACITY.get(depot_name, 0) 
     
     def __init__(self):
-        self.base_url = app.config['OSRM_SERVER']
+        self.base_url = Config.OSRM_SERVER
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': 'OSRM-Distance-Calculator/1.0'})
         
@@ -162,3 +163,38 @@ class OSRMService:
         except Exception as e:
             logger.error(f"OSRM connection test failed: {str(e)}")
             return False
+
+    def expand_driver_points(self, driver_df):
+        expanded_rows = []
+
+        for _, row in driver_df.iterrows():
+            cname = row.get('cname', '')
+            capacity_input = row.get('capacity', None)
+
+            # If it's a hub, expand by capacity
+            if cname in OSRMService.DEFAULT_HUB_CAPACITY:
+                cap = OSRMService.get_capacity(cname, capacity_input)
+                for i in range(cap):
+                    new_row = row.copy()
+                    new_row['instance'] = i + 1  # Optional: track which copy
+                    expanded_rows.append(new_row)
+            else:
+                expanded_rows.append(row)
+
+        return pd.DataFrame(expanded_rows)
+    
+    def add_dummy_pickups(self, pickup_df, target_len):
+        """Add dummy pickup rows to make total = target_len"""
+        current_len = len(pickup_df)
+        dummy_count = target_len - current_len
+        dummy_rows = []
+
+        for i in range(dummy_count):
+            dummy_rows.append({
+                'cname': f'Dummy-{i+1}',
+                'plon': 0.0,  # Arbitrary point (won't be used)
+                'plat': 0.0,
+                'is_dummy': True
+            })
+
+        return pd.concat([pickup_df, pd.DataFrame(dummy_rows)], ignore_index=True)
