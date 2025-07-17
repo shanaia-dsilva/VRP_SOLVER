@@ -19,6 +19,11 @@
         <span>BAGHIRATHI CONNECTED AND SHARED MOBILITY INDIA PVT LTD</span>
       </div>
     </div>
+    <ul>
+      <li><a href="#dashboard-sec">Home</a></li>
+      <li><a href="#results-sect">Results</a></li>
+      <li><a href="#stats-sec">Dashboard</a></li>
+    </ul>
   </nav>
 
   <section id="dashboard-sec">
@@ -41,23 +46,23 @@
       <div class="phase">
         <div class="phase-card" onclick="document.getElementById('file-input').click()">
           <img src="/uploads/upload.png" class="project-icon" alt="Upload" />
-          <p class="project-title"><strong>Phase 1</strong>Upload Your Data</p>
+          <p class="project-title"><strong></strong>Upload Your Data</p>
         </div>
         <div class="phase-card">
           <img src="/uploads/process.png" class="project-icon" alt="Processing" />
-          <p class="project-title"><strong>Phase 2</strong>Data Processing</p>
+          <p class="project-title"><strong></strong>Data Processing</p>
         </div>
         <div class="phase-card">
           <img src="/uploads/route.png" class="project-icon" alt="Calculation" />
-          <p class="project-title"><strong>Phase 3</strong>Distance Calculation</p>
+          <p class="project-title"><strong></strong>Distance Calculation</p>
         </div>
         <div class="phase-card">
           <img src="/uploads/optimize-icon.png" class="project-icon" alt="Optimize" />
-          <p class="project-title"><strong>Phase 4</strong>Optimize Assignments</p>
+          <p class="project-title"><strong></strong>Optimize Assignments</p>
         </div>
         <div class="phase-card">
           <img src="/uploads/export-icon.png" class="project-icon" alt="Export" />
-          <p class="project-title"><strong>Phase 5</strong>Export Results</p>
+          <p class="project-title"><strong></strong>Export Results</p>
         </div>
       </div>
 
@@ -205,6 +210,45 @@
       </div>
     </div>
   </section>
+  <section id="stats-sec">
+  <div id="dashboard">
+    <ul>
+        <li><h1>Dashboard</h1><p>View your route optimization Insights</p></li>
+        <li><button class="app-btn" onclick="exportInsights()" href="project.html">Download Insights</button></li>
+    </ul>
+  </div>
+  <hr class="section-divider" />
+  <div class="info-tiles">
+    <div class="stat-tile">
+      <h3>Total Original Dead km</h3>
+      <div class="stat-value" id="total-projects-num"></div>
+      <img src="/uploads/deadkm.png" class="stat-img" />
+    </div>
+    <div class="stat-tile">
+      <h3>Optimized Dead km</h3>
+      <div class="stat-value" id="routes-num"></div>
+      <img src="/uploads/distance_op.png" class="stat-img" />
+    </div>
+    <div class="stat-tile">
+      <h3>Total Minimized</h3>
+      <div class="stat-value" id="savings-num"></div>
+      <img src="/uploads/reduced.png" class="stat-img" />
+    </div>
+    <div class="stat-tile">
+      <h3>No. of Routes Swapped</h3>
+      <div class="stat-value" id="savings-num"></div>
+      <img src="/uploads/optim.png" class="stat-img" />
+    </div>
+    <div class="stat-tile">
+      <h3>Total Swaps &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<strong>Inter-Institute</strong></h3>
+      <div class="stat-value" id="savings-num"></div>
+    </div>
+    <div class="stat-tile">
+      <h3>Total Swaps &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<strong>Intra-Institute</strong></h3>
+      <div class="stat-value" id="savings-num"></div>
+    </div>
+  </div>
+</section>
 </body>
 
 </html>

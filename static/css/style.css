@@ -3,7 +3,10 @@ body {
   font-family: Verdana, 'Courier New', Courier, monospace, Geneva, Tahoma, sans-serif;
   margin: 0;
   padding: 0;
+}html {
+  scroll-behavior: smooth;
 }
+
 @font-face {
   font-family: 'clashdisplay';
   src: url('/uploads/clashdisplay-Medium.woff') format('woff');
@@ -11,15 +14,73 @@ body {
   font-style: normal;
 }
 
+
+#nav-bar ul {
+  display:flex;
+  flex-direction: row;
+}
+li, a {
+  list-style: none;
+  text-decoration: none;
+  margin-right: 1rem;
+  color: black;
+}
+
 #nav-bar {
+  justify-content: space-between;
+  position: fixed;
+  top:0; left:0; width:100vw;
   background-color: beige;
-  height: 2.5rem;
-  padding: 0 1rem;
-  display: flex;
+  color: black;
+  z-index: 999;
   align-items: center;
   font-style: italic;
   font-size: smaller;
+  display: flex;
+  flex-direction:row ;
+  padding:0 0 0 12px
 }
+
+.custom-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 5600;
+  font-size: 14px;
+}
+
+.icon-img {
+  height: 30px;
+  width: 30px;
+  object-fit: contain;
+}
+
+#nav-bar ul {
+  list-style: none;
+}
+
+#nav-bar ul li {
+  display: inline;
+}
+
+#nav-bar ul li a {
+  color:black;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+#nav-bar ul li a:hover {
+  color: #0048a7;
+}
+
 
 .icon-img {
   height: 20px;
@@ -27,7 +88,7 @@ body {
   margin-right: 10px;
 }
 #dashboard-sec {
-  margin: 1rem 2rem;
+  margin: 4.0rem 2rem 1rem 2rem;
 }
 
 h1 {
@@ -45,7 +106,7 @@ h3 {
 p {
   color: rgb(138, 112, 75);
   font-family: 'clashdisplay', Verdana, Geneva, Tahoma, sans-serif;
-  font-size: small;
+  font-size: 15px;
   font-weight:lighter;
   margin: 0;
 }
@@ -99,9 +160,9 @@ h6{
   color: #555;
   margin: 0;
 }
-.phase strong{
-  color: #687a92;
-  display:block;
+.stat-tile strong{
+  color: #0048a7;
+  /* display:block; */
 }
 
 .data-container {
@@ -109,14 +170,14 @@ h6{
   border: 1px solid lightgray;
   border-radius: 10px;
   padding: 1rem;
-  width:100%;
+  width:60%;
 }
 #file-stat {
   background-color: beige;
   padding: 1rem;
   border: 1px solid lightgray;
   border-radius: 15px;
-  min-height: 90%;
+  min-height: 100%;
   width:80%;
 }
 
@@ -468,12 +529,15 @@ img {
 }
 
 #results-sect,
-#preview-section{
+#preview-section, #stats-sec{
   border: 1px solid lightgray;
   border-radius: 10px;
   padding: 2rem 1rem;
   margin: 1rem 2.5rem;
 }
+ #stats-sec {
+  height:100vh;
+ }
 .results-container {
   display: flex;
   flex-direction: row;
@@ -491,6 +555,59 @@ img {
   height:85%;
   margin:0 20px;
   border-radius: 10px;
+}
+
+#dashboard ul {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;  
+  list-style-type: none;
+}
+
+#dashboard li h1 {
+  font-size: x-large;
+  padding:0;
+  margin:0;
+}
+
+.info-tiles {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin:2rem 0;
+}
+
+.stat-tile {
+  background-color: #e2f8e4;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  flex: 1 1 200px;
+  padding: 20px;
+  text-align: left;
+  position: relative;
+  min-width: 220px;
+  min-height:80px;
+  transition: ease-in-out 0.2s;
+}
+
+.stat-tile:hover {
+    background-color: #e5b79e;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.stat-img {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  padding: 5px;
 }
 
 @media (max-width: 1200px) {
@@ -524,13 +641,13 @@ img {
   }
 
   .phase-card {
-    padding: 0.7rem 0 0 0;
+    padding: 0.7rem 0.7rem;
     text-align: center;
     font-size: 13px;
     border-radius: 6px;
-    min-width:14vw;
+    min-width:6vw;
     transition: width 0.3s;
-    min-height:12vh;
+    min-height:10vh;
     align-items: center;
     justify-content: center;
   }
@@ -572,9 +689,10 @@ img {
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 843px) {
   .project-title {
     font-size: 12px;
+    text-overflow: break-word;
   }
 }
 
