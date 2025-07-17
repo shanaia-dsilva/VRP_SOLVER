@@ -92,14 +92,33 @@
 
           <div id="paste-section" class="paste-section" style="display: none;">
             <div class="paste-container">
-
-              <label for="depot-mapping" class="depot-label">Institute-wise Depot List<br/></label>
-              <textarea id="depot-mapping" class="depot-textarea" placeholder="Eg: NPS Parking, DPS Mallasandra, MAHE Parking
-              Disclaimer: Not Hubs like Hoodi hub/ Baghirathi Shed, where any institute bus can be parked."></textarea>
-
+              <div class="depot-details">
+                <div class="parking-container">
+                  <label for="depot-mapping" class="depot-label">Institute-wise Depot List<br/></label>
+                  <textarea id="institute-parking" class="depot-textarea" placeholder="Eg: NPS Parking, DPS Mallasandra, MAHE Parking &#10; &#10;Disclaimer: Not Hubs like Hoodi hub/ Baghirathi Shed, where any institute bus can be parked."></textarea>
+                </div>
+                <div class="capacity-container">
+                  <div class="hub-capacity">
+                    <div class="hub">NPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">DPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">Hoodi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div><div class="hub-capacity">
+                    <div class="hub">VSA</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">PU</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">Banaswadi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                </div>
+              </div>
               <div class="paste-buttons">
-                <button type="button" class="app-btn" id="process-data-btn" onclick="processPastedData()">Process
-                  Data</button>
+                <button type="button" class="app-btn" id="process-data-btn" onclick="processDepotList()">Process Data</button>
                 <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
               </div>
             </div>
@@ -120,23 +139,23 @@
               </tr>
               <tr>
                 <td>Category</td>
-                <td>Route Number.</td>
+                <td>Route Number</td>
               </tr>
               <tr>
                 <td>Driver Employee ID</td>
-                <td>Licensed Experience (in years)</td>
+                <td>Licensed Experience (years)</td>
               </tr>
               <tr>
-                <td>Driver point Name</td>
-                <td>Driver point Latitude</td>
+                <td>Driver pt Latitude</td>
+                <td>Driver pt Longitude</td>
               </tr>
               <tr>
-                <td>Driver point Longitude</td>
-                <td>1st Pickup Pt. Latitude</td>
+                <td>Driver pt Name</td>
+                <td>1st Pickup pt Latitude</td>
               </tr>
               <tr>
-                <td>1st Pickup Pt. Longitude</td>
-                <td>1st Pickup Point Name</td>
+                <td>1st Pickup pt Longitude</td>
+                <td>1st Pickup pt Name</td>
               </tr>
             </table>
           </div>

@@ -183,47 +183,88 @@ function initializeSmartPaste() {
 }
 
 // =======================
-function processPastedData() {
-    const rowCount = document.getElementById('vehicle-number').value.trim().split('\n').length;
-    const rows = [];
-
-    for (let i = 0; i < rowCount; i++) {
-        const row = pasteFieldIds.map(id =>
-            (document.getElementById(id).value.split('\n')[i] || '').trim()
-        );
-        rows.push(row.join('\t'));
+function processDepotList() {
+    const textarea = document.getElementById('institute-parking');
+    if (!textarea) {
+        showStatus('Depot input field not found.', 'error');
+        return;
     }
 
-    const headers = [
-        'Vehicle Number', 'Institute',
-        'Point 1 latitude', 'Point 1 longitude',
-        'Point 2 latitude', 'Point 2 longitude'
-    ];
+    // Extract non-empty lines
+    const lines = textarea.value
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '');
 
-    const payload = [headers.join('\t'), ...rows].join('\n');
+    if (lines.length === 0) {
+        showStatus('No depot names entered.', 'error');
+        return;
+    }
 
-    showStatus('Processing pasted data...', 'info');
+    // Prepare TSV content
+    const headers = ['institute-parking'];
+    const payload = [headers.join('\t'), ...lines].join('\n');
 
-    fetch('/process_paste', {
+    showStatus('Processing depot list...', 'info');
+
+    fetch('/process_depots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: payload })
     })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                currentData = data.full_data;
-                showPreview(data.preview);
-                showStatus(`Pasted data processed. ${data.row_count} rows loaded.`, 'success');
-            } else {
-                showStatus(data.error, 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Paste process error:', err);
-            showStatus('Error processing pasted data.', 'error');
-        });
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            currentData = data.full_data;
+            showStatus(`Depot list processed. ${data.row_count} entries loaded.`, 'success');
+        } else {
+            showStatus(data.error || 'Unknown error occurred.', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Depot list process error:', err);
+        showStatus('Error processing depot list.', 'error');
+    });
 }
+
+
+// function processPastedData() {
+//     const rowCount = document.getElementById('vehicle-number').value.trim().split('\n').length;
+//     const rows = [];
+
+//     for (let i = 0; i < rowCount; i++) {
+//         const row = pasteFieldIds.map(id =>
+//             (document.getElementById(id).value.split('\n')[i] || '').trim()
+//         );
+//         rows.push(row.join('\t'));
+//     }
+
+//     const headers = ['institute-parking'];
+
+//     const payload = [headers.join('\t'), ...rows].join('\n');
+
+//     showStatus('Processing pasted data...', 'info');
+
+//     fetch('/process_paste', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ content: payload })
+//     })
+//         .then(res => res.json())
+//         .then(data => {
+//             if (data.success) {
+//                 currentData = data.full_data;
+//                 showPreview(data.preview);
+//                 showStatus(`Pasted data processed. ${data.row_count} rows loaded.`, 'success');
+//             } else {
+//                 showStatus(data.error, 'error');
+//             }
+//         })
+//         .catch(err => {
+//             console.error('Paste process error:', err);
+//             showStatus('Error processing pasted data.', 'error');
+//         });
+// }
 
 // =======================
 // Preview Table

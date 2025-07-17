@@ -8,6 +8,19 @@ from app import app
 logger = logging.getLogger(__name__)
 
 class OSRMService:
+    DEFAULT_HUB_CAPACITY = {
+        'NPS': 125,
+        'DPS': 98,
+        'Hoodi': 88,
+        'VSA': 109,
+        'PU': 218,
+        'Banaswadi': 100
+    }
+    def get_capacity(depot_name, user_capacity):
+        if pd.notnull(user_capacity):
+            return int(user_capacity)
+        return OSRMService.DEFAULT_HUB_CAPACITY.get(depot_name, 0) 
+    
     def __init__(self):
         self.base_url = app.config['OSRM_SERVER']
         self.session = requests.Session()

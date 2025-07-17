@@ -228,37 +228,78 @@ p {
   gap: 0.2rem;
   padding: 1rem 1rem;
 }
-
-.paste-col {
-  flex: 0 0 20%;
+.depot-details{
+  display:flex; flex-direction: row;
+  gap:1rem;
+  justify-content: space-between;
+}
+.capacity-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  gap: 5px;
+  padding: 12px;
+  background-color: ivory;
+  border-radius: 10px;
+  max-width: 400px;
+  margin: 0 20px;
+  border: 1px solid #ccc;
 }
-.paste-col label {
-  font-weight: bold;
-  font-size: small;
-  margin-bottom: 0.25rem;
-  /* height: 1.2rem; */
+.hub-capacity {
   display: flex;
-  align-items: flex-end;
-  text-align: center;
-  width:100%;
-  background-color: #f2f9fdb7;
-  border-right: #555 solid 1px;
-  border-left: #555 solid 1px;
-  padding:6px 0;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fdf6e3;
+  padding: 0 0 0 10px;
+  margin-bottom: 3px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
-.paste-container textarea {
-  width: 90%;
-  min-height:30vh;
+.hub {
+  font-weight: 600;
+  color: #5c4033;
+  font-size: 12px;
+  margin-right: 16px;
+  min-width: 80px;   
+  white-space: nowrap; 
+}
+
+.capacity-inp {
+  width: 140px;
+  padding: 8px 12px;
+  border:none;
+  border-left: 1px solid #ccc;
+  /* border-radius: 8px;  */
+  font-size: 14px;
+  background-color: ivory;
+  color: #333;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.capacity-inp:focus {
+  border-color: #687a92;
+  box-shadow: 0 0 5px rgba(104, 122, 146, 0.3);
+  outline: none;
+}
+.parking-container {
+  width:100%;
+}
+.parking-container textarea{
+  min-height:32vh;
+  width:100%;
   font-family: 'Courier New', Courier, monospace;
   font-size: 0.8rem;
   padding: 0.5rem;
   border: 1px solid #ccc;
+  border-radius: 5px;
+  margin:5px 0;
   resize: none;
+}
+
+.parking-container textarea:focus {
+  border-color: #687a92;
+  box-shadow: 0 0 5px rgba(104, 122, 146, 0.3);
+  outline: none;
 }
 .upload-btn {
   background-color: #687a92;
@@ -554,6 +595,6 @@ img {
     max-height:max-content;
   }
   .drag-area{
-    height:30vh;
+    height:30vh;  
   }
 }

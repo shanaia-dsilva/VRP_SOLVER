@@ -8,17 +8,16 @@ logger = logging.getLogger(__name__)
 
 class DataProcessor:
     def __init__(self):
-        self.required_columns = [
-            'Vehicle Number',
-            'Institute',
-            'Point 1 latitude',
-            'Point 1 longitude',
-            'Point 2 latitude',
-            'Point 2 longitude'
+        self.required_columns = [ 
+            'Vehicle Number', 'Institute',
+            'Category', 'Route Number',
+            'Driver Employee ID', 'Licensed Experience (years)',
+            'Driver pt Latitude', 'Driver pt Longitude',
+            'Driver pt Name', '1st Pickup pt Latitude',
+            '1st Pickup pt Longitude', '1st Pickup pt Name'
         ]
-    
+
     def validate_columns(self, df: pd.DataFrame) -> bool:
-        """Validate that all required columns are present"""
         missing_columns = [col for col in self.required_columns if col not in df.columns]
         if missing_columns:
             logger.error(f"Missing required columns: {missing_columns}")
@@ -26,24 +25,18 @@ class DataProcessor:
         return True
     
     def validate_coordinates(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Validate coordinate values"""
         issues = []
         
         coordinate_columns = [
-            'Point 1 latitude',
-            'Point 1 longitude',
-            'Point 2 latitude',
-            'Point 2 longitude'
+            'Driver pt Latitude', 'Driver pt Longitude',
+            '1st Pickup pt Latitude', '1st Pickup pt Longitude',
         ]
-        
         for col in coordinate_columns:
             if col in df.columns:
-                # Check for non-numeric values
                 non_numeric = df[~pd.to_numeric(df[col], errors='coerce').notna()]
                 if not non_numeric.empty:
                     issues.append(f"Non-numeric values in {col}: rows {non_numeric.index.tolist()}")
                 
-                # Check for out-of-range values
                 numeric_values = pd.to_numeric(df[col], errors='coerce')
                 if 'latitude' in col.lower():
                     out_of_range = numeric_values[(numeric_values < -90) | (numeric_values > 90)]
@@ -140,38 +133,26 @@ class DataProcessor:
         return delimiter
     
     def clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Clean and standardize the data"""
-        # Remove completely empty rows
         df = df.dropna(how='all')
-        
-        # Strip whitespace from string columns
         string_columns = ['Vehicle Number', 'Institute']
         for col in string_columns:
             if col in df.columns:
                 df[col] = df[col].astype(str).str.strip()
-        
-        # Convert coordinate columns to numeric
+    
         coordinate_columns = [
-            'Point 1 latitude',
-            'Point 1 longitude',
-            'Point 2 latitude',
-            'Point 2 longitude'
+            'Driver pt Latitude', 'Driver pt Longitude',
+            '1st Pickup pt Latitude', '1st Pickup pt Longitude',
         ]
-        
+
         for col in coordinate_columns:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
-        
-        # Remove rows with invalid coordinates
         df = df.dropna(subset=coordinate_columns)
-        
-        # Reset index
         df = df.reset_index(drop=True)
         
         return df
     
     def get_preview_data(self, df: pd.DataFrame, num_rows: int = 5) -> Dict[str, Any]:
-        """Get preview data for frontend display"""
         preview_df = df.head(num_rows)
         
         return {
@@ -182,14 +163,18 @@ class DataProcessor:
         }
     
     def create_sample_data(self) -> pd.DataFrame:
-        """Create sample data for download"""
         sample_data = {
-            'Vehicle Number': ['VH001', 'VH002', 'VH003'],
-            'Institute': ['Institute A', 'Institute B', 'Institute C'],
-            'Point 1 latitude': [40.7128, 34.0522, 41.8781],
-            'Point 1 longitude': [-74.0060, -118.2437, -87.6298],
-            'Point 2 latitude': [40.7589, 34.0522, 41.8781],
-            'Point 2 longitude': [-73.9851, -118.2437, -87.6298]
+            'Vehicle Number': ['KA53VH4001', 'KA53VH4002', 'KA53VH4003', 'KA53VH4004'],
+            'Institute': ['Amity', 'MAHE', 'FIS', 'Nurture'],
+            'Category': ['A+', 'A', 'B', 'C'],
+            'Route Number': ['X1', 'X2', 'X3', 'X4'],
+            'Driver Employee ID': ['BIT01994', 'BIT02767', 'TMP0204', 'TMP1121'],
+            'Licensed Experience (years)': [6.6, 's', 5.0, 0.5],
+            'Driver pt Latitude': [12.9875823, 13.0275876, 13.032832, 13.0910245],
+            'Driver pt Longitude': [77.6009543, 77.710653, 77.609844, 77.5805965],
+            'Driver pt Name': ['Shivaji Nagar', 'KR Puram', 'Shivaji Nagar', 'Goraguntepalya'],
+            '1st Pickup pt Latitude': [13.02894312, 13.00877634, 12.96451233, 13.03983339],
+            '1st Pickup pt Longitude': [77.56772479, 77.69236841, 77.64951354, 77.51983235],
+            '1st Pickup pt Name': ['Ramaiah Hospital', 'KR Puram', 'Leela Palace Rd', 'Jalahalli']
         }
-        
         return pd.DataFrame(sample_data)

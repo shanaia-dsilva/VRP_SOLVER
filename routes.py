@@ -59,42 +59,71 @@ def upload_file():
         logger.error(f"Upload error: {str(e)}")
         return jsonify({'error': 'An error occurred during upload'}), 500
 
-@app.route('/process_paste', methods=['POST'])
-def process_paste():
+
+@app.route('/process_depots', methods=['POST'])
+def process_depots():
     try:
         data = request.get_json()
         if not data or 'content' not in data:
             return jsonify({'error': 'No data provided'}), 400
-        
+
         content = data['content']
-        processor = DataProcessor()
+        lines = [line.strip() for line in content.strip().splitlines() if line.strip()]
         
-        try:
-            df = processor.process_pasted_data(content)
-            preview_data = processor.get_preview_data(df)
-            
-            # return jsonify({
-            #     'success': True,
-            #     'preview': preview_data,
-            #     'row_count': len(df),
-            #     'message': f'Successfully processed {len(df)} rows'
-            # })
+        if not lines:
+            return jsonify({'error': 'No depot names provided'}), 400
 
-            return jsonify({
-                'success': True,
-                'preview': preview_data,
-                'full_data': df.values.tolist(),
-                'row_count': len(df),
-                'message': f'Successfully processed {len(df)} rows'
-            })
+        df = pd.DataFrame({'Depot Name': lines})
+        preview = df.head().to_dict(orient="records")
+        
+        return jsonify({
+            'success': True,
+            'row_count': len(df),
+            'preview': preview,
+            'full_data': df.to_dict(orient="records"),
+            'message': f'Successfully processed {len(df)} depots'
+        })
 
-        except Exception as e:
-            logger.error(f"Error processing pasted data: {str(e)}")
-            return jsonify({'error': f'Error processing data: {str(e)}'}), 400
-    
     except Exception as e:
-        logger.error(f"Process paste error: {str(e)}")
-        return jsonify({'error': 'An error occurred processing the data'}), 500
+        logger.error(f"Error processing depots: {str(e)}")
+        return jsonify({'error': 'An error occurred while processing depot list'}), 500
+
+# @app.route('/process_paste', methods=['POST'])
+# def process_paste():
+#     try:
+#         data = request.get_json()
+#         if not data or 'content' not in data:
+#             return jsonify({'error': 'No data provided'}), 400
+        
+#         content = data['content']
+#         processor = DataProcessor()
+        
+#         try:
+#             df = processor.process_pasted_data(content)
+#             preview_data = processor.get_preview_data(df)
+            
+#             # return jsonify({
+#             #     'success': True,
+#             #     'preview': preview_data,
+#             #     'row_count': len(df),
+#             #     'message': f'Successfully processed {len(df)} rows'
+#             # })
+
+#             return jsonify({
+#                 'success': True,
+#                 'preview': preview_data,
+#                 'full_data': df.values.tolist(),
+#                 'row_count': len(df),
+#                 'message': f'Successfully processed {len(df)} rows'
+#             })
+
+#         except Exception as e:
+#             logger.error(f"Error processing pasted data: {str(e)}")
+#             return jsonify({'error': f'Error processing data: {str(e)}'}), 400
+    
+#     except Exception as e:
+#         logger.error(f"Process paste error: {str(e)}")
+#         return jsonify({'error': 'An error occurred processing the data'}), 500
 
 @app.route('/calculate', methods=['POST'])
 def calculate_distances():
