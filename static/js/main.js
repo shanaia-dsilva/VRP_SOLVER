@@ -58,7 +58,7 @@ function uploadCSV() {
             showStatus('Error uploading file.', 'error');
         });
 }
-
+// =======================
 function processPastedData() {
     const rowCount = document.getElementById('vehicle-number').value.trim().split('\n').length;
     const rows = [];
@@ -83,7 +83,7 @@ function processPastedData() {
     fetch('/process_paste', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: payload, task_id: taskId }) 
+        body: JSON.stringify({ content: payload })
     })
         .then(res => res.json())
         .then(data => {
@@ -161,6 +161,152 @@ async function calculateDistances() {
 }
 
 let currentPollInterval = null;
+
+let driverList = []; 
+let pickupList = [];   
+
+
+async function generateDistanceMatrix() {
+    const payload = {
+        driver_data: driverList,
+        pickup_data: pickupList
+    };
+
+    const res = await fetch('/generate_matrix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    return data.matrix; 
+}
+async function optimizeAssignments(matrix) {
+    const payload = {
+        driver_data: driverList,
+        pickup_data: pickupList,
+        distance_matrix: matrix
+    };
+
+    const res = await fetch('/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        showOptimizedResults(data.assignments);
+        updateInsightsDashboard(data.insights);
+        showSwapChains(data.chains);
+    } else {
+        showStatus(data.error || 'Optimization failed.', 'error');
+    }
+}
+document.getElementById('run-optimization-btn').addEventListener('click', async () => {
+    const matrix = await generateDistanceMatrix();
+    await optimizeAssignments(matrix);
+});
+function exportOptimizedResults(data) {
+    const url = `/export/optimized?data=${encodeURIComponent(JSON.stringify(data))}`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'optimized_assignments.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+function showOptimizedResults(assignments) {
+    const section = document.getElementById('results-section');
+    const table = document.getElementById('results-table');
+    const summary = document.getElementById('results-summary');
+
+    table.innerHTML = '';
+    section.style.display = 'block';
+
+    const columns = ['From Bus', 'To Bus', 'Dead KM'];
+    
+    // Summary box
+    summary.innerHTML = `<strong>Total Assignments:</strong> ${assignments.length}`;
+
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    columns.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    assignments.forEach(row => {
+        const tr = document.createElement('tr');
+        columns.forEach(col => {
+            const td = document.createElement('td');
+            td.textContent = row[col] ?? 'N/A';
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+}
+function updateInsightsDashboard(insights) {
+    document.getElementById('total-projects-num').textContent = insights.original_dead_km ?? '—';
+    document.getElementById('routes-num').textContent = insights.total_dead_km.toFixed(2);
+    document.getElementById('savings-num').textContent = insights.total_minimized?.toFixed(2) ?? '—';
+    document.getElementById('routes-swapped').textContent = insights.total_swaps;
+
+    document.getElementById('inter-swaps').textContent = insights.inter_institute ?? 0;
+    document.getElementById('intra-swaps').textContent = insights.intra_institute ?? 0;
+}
+function showSwapChains(chains) {
+    const section = document.getElementById('results-summary');
+    const chainHTML = chains.map(chain => {
+        return `<li>🔄 ${chain.join(' → ')}</li>`;
+    }).join('');
+
+    section.innerHTML += `
+        <strong>Swap Chains:</strong>
+        <ul>${chainHTML}</ul>
+    `;
+}
+document.getElementById('download-csv').addEventListener('click', () => {
+    if (!currentResults) return;
+    const url = `/export/optimized?data=${encodeURIComponent(JSON.stringify(currentResults))}`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'optimized_assignments.csv';
+    link.click();
+});
+document.getElementById('run-optimization-btn').addEventListener('click', async () => {
+    const matrix = await generateDistanceMatrix(); // assumes you have this function
+    const payload = {
+        driver_data: driverList,
+        pickup_data: pickupList,
+        distance_matrix: matrix
+    };
+
+    const res = await fetch('/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        currentResults = data.assignments;
+        showOptimizedResults(data.assignments);
+        updateInsightsDashboard(data.insights);
+        showSwapChains(data.chains);
+        document.getElementById('download-csv').style.display = 'inline-block';
+        document.getElementById('download-xlsx').style.display = 'inline-block';
+    } else {
+        showStatus(data.error || 'Optimization failed.', 'error');
+    }
+});
 
 function pollProgress(taskId) {
     if (currentPollInterval) {
@@ -316,48 +462,6 @@ function initializeSmartPaste() {
     });
 }
 
-// =======================
-function processPastedData() {
-    const rowCount = document.getElementById('vehicle-number').value.trim().split('\n').length;
-    const rows = [];
-
-    for (let i = 0; i < rowCount; i++) {
-        const row = pasteFieldIds.map(id =>
-            (document.getElementById(id).value.split('\n')[i] || '').trim()
-        );
-        rows.push(row.join('\t'));
-    }
-
-    const headers = [
-        'Vehicle Number', 'Institute',
-        'Point 1 latitude', 'Point 1 longitude',
-        'Point 2 latitude', 'Point 2 longitude'
-    ];
-
-    const payload = [headers.join('\t'), ...rows].join('\n');
-
-    showStatus('Processing pasted data...', 'info');
-
-    fetch('/process_paste', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: payload })
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                currentData = data.full_data;
-                showPreview(data.preview);
-                showStatus(`Pasted data processed. ${data.row_count} rows loaded.`, 'success');
-            } else {
-                showStatus(data.error, 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Paste process error:', err);
-            showStatus('Error processing pasted data.', 'error');
-        });
-}
 
 // =======================preview
 function showPreview(preview) {

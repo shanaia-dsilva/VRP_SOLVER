@@ -9,6 +9,19 @@ min_driver_exp = {
     'C': 0
 }
 
+def run_deadkm_optimization(driver_data, pickup_data, distance_matrix):
+    driver_df = pd.DataFrame(driver_data)
+    pickup_df = pd.DataFrame(pickup_data)
+    distance_df = pd.DataFrame(distance_matrix)
+
+    optimized_df, insights, chains = optimize_routes(driver_df, pickup_df, distance_df)
+
+    return {
+        'assignments': optimized_df,
+        'insights': insights,
+        'swap_chains': chains
+    }
+
 def optimize_routes(driver_df, pickup_df, distance_mat):
     dist = distance_mat.copy()
     for d in dist.index:

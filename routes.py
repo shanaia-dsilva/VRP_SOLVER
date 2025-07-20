@@ -8,6 +8,7 @@ import io
 from app import app
 from osrm_service import OSRMService, progress_tracker
 from data_processor import DataProcessor
+from solver import run_deadkm_optimization
 
 
 logger = logging.getLogger(__name__)
@@ -89,52 +90,6 @@ def process_paste():
 
 @app.route('/calculate', methods=['POST'])
 def calculate_distances():
-    try:
-        data = request.get_json()
-        if not data or 'data' not in data:
-            return jsonify({'error': 'No data provided for calculation'}), 400
-        
-        df = pd.DataFrame(data['data'], columns=data.get('columns'))
-        df.columns = df.columns.str.strip()
-        task_id = data.get('task_id')  
-
-        processor = DataProcessor()
-        if not processor.validate_columns(df):
-            return jsonify({'error': 'Invalid data format. Please check required columns.'}), 400
-
-        osrm_service = OSRMService()
-        try:
-            results_df = osrm_service.calculate_batch_distances(df, task_id=task_id)
-            ordered_columns = [
-                'Institute', 'Vehicle Number',
-                'Driver pt Latitude','Driver pt Longitude',
-                '1st Pickup pt Latitude','1st Pickup pt Longitude',
-                'Distance_km', 'Duration_minutes', 'Calculation_status'
-            ]
-            results_df = results_df[ordered_columns]
-
-            results = {
-                'success': True,
-                'results': results_df.to_dict('records'),
-                'summary': {
-                    'total_routes': len(results_df),
-                    'successful_calculations': len(results_df[results_df['Distance_km'].notna()]),
-                    'failed_calculations': len(results_df[results_df['Distance_km'].isna()])
-                }
-            }
-            return jsonify(results)
-
-        except Exception as e:
-            logger.error(f"OSRM calculation error: {str(e)}")
-            return jsonify({'error': f'Error calculating distances: {str(e)}'}), 500
-
-    except Exception as e:
-        logger.error(f"Calculate error: {str(e)}")
-        return jsonify({'error': 'An error occurred during calculation'}), 500
-
-
-@app.route('/optimize', methods=['POST'])
-def deadkm_optimization():
     try:
         data = request.get_json()
         if not data or 'data' not in data:
