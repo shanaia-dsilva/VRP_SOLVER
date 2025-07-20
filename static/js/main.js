@@ -1,6 +1,5 @@
 let currentData = null;
 let currentResults = null;
-let taskId = null;  // ← Global task ID, reused across steps
 
 document.addEventListener('DOMContentLoaded', () => {
     taskId = generateUUID(); 
@@ -102,6 +101,7 @@ function processPastedData() {
         });
 }
 
+// calculating distances
 async function calculateDistances() {
     if (!currentData) return showStatus('No data loaded.', 'error');
 
@@ -109,7 +109,9 @@ async function calculateDistances() {
     modal.classList.remove('hidden');
     modal.classList.add('show');
 
-    pollProgress(taskId); 
+    const taskId = generateUUID();
+    
+    pollProgress(taskId);
 
     const payload = {
         task_id: taskId,
@@ -157,10 +159,12 @@ async function calculateDistances() {
         }, 1500);
     }
 }
+
 let currentPollInterval = null;
 
 function pollProgress(taskId) {
     if (currentPollInterval) {
+        console.log('Clearing old polling loop');
         clearInterval(currentPollInterval);
     }
 
@@ -401,68 +405,6 @@ function generateUUID() {
 }
 
 // =======================
-// calculating distances
-async function calculateDistances() {
-    if (!currentData) return showStatus('No data loaded.', 'error');
-
-    const modal = document.getElementById('progressModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('show');
-
-    const taskId = generateUUID();
-    
-    pollProgress(taskId);
-
-    const payload = {
-        task_id: taskId,
-        data: currentData.map(row => ({
-            'Vehicle Number': row[0],
-            'Institute': row[1],
-            'Category': row[2],
-            'Route Number': row[3],
-            'Driver Employee ID': row[4],
-            'Licensed Experience (years)': row[5],
-            'Driver pt Latitude': row[6],
-            'Driver pt Longitude': row[7],
-            'Driver pt Name': row[8],
-            '1st Pickup pt Latitude': row[9],
-            '1st Pickup pt Longitude': row[10],
-            '1st Pickup pt Name': row[11]
-        }))
-    };
-
-    try {
-        const res = await fetch('/calculate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            currentResults = data.results;
-            showResults(data);
-            updateProgress(100, 'Completed!');
-            showStatus('Distance calculation complete.', 'success');
-        } else {
-            showStatus(data.error, 'error');
-        }
-    } catch (err) {
-        console.error('Distance calculation error:', err);
-        showStatus('Error during distance calculation.', 'error');
-    } finally {
-        setTimeout(() => {
-            modal.classList.remove('show');
-            modal.classList.add('hidden');
-            updateProgress(0, '');
-        }, 1500);
-    }
-
-}
-
-
-
 
 // ==========
 function showResults(data) {
