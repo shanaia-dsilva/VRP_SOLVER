@@ -1,150 +1,249 @@
-from flask import Blueprint, request, jsonify, render_template, send_from_directory
-import pandas as pd
 import os
-import uuid
+import json
 import logging
+from flask import render_template, request, jsonify, send_file, flash, redirect, url_for
 from werkzeug.utils import secure_filename
-from scipy.optimize import linear_sum_assignment
-import numpy as np
-
-from osrm_service import OSRMService
+import pandas as pd
+import io
+from app import app
+from osrm_service import OSRMService, progress_tracker
 from data_processor import DataProcessor
 
-routes = Blueprint('routes', __name__)
-UPLOAD_FOLDER = "uploads"
-EXPORT_FOLDER = "exports"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(EXPORT_FOLDER, exist_ok=True)
 
-@routes.route('/')
+logger = logging.getLogger(__name__)
+
+@app.route('/')
 def index():
     return render_template('index.html')
+import uuid
 
-@routes.route('/upload', methods=['POST'])
-def upload():
-    if 'file' not in request.files:
-        return jsonify({'success': False, 'message': 'No file uploaded'}), 400
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'Empty filename'}), 400
-
+@app.route('/upload', methods=['POST'])
+def upload_file():
     try:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(filepath)
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        if file and file.filename.lower().endswith('.csv'):
+            processor = DataProcessor()
+            try:
+                df = processor.process_csv_file(file)
+                preview_data = processor.get_preview_data(df)
 
-        processor = DataProcessor()
-        df = processor.process_csv_file(filepath)
+                task_id = str(uuid.uuid4()) 
 
-        preview = df.head().to_dict(orient="records")
-        return jsonify({
-            'success': True,
-            'row_count': len(df),
-            'preview': preview,
-            'full_data': df.to_dict(orient="records"),
-            'filename': filename,
-            'message': f'Successfully uploaded {filename}'
-        })
-    except Exception as e:
-        logging.error(f"Upload error: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@routes.route('/process_depots', methods=['POST'])
-def process_depots():
-    data = request.get_json()
-    if not data or 'depots' not in data:
-        return jsonify({'success': False, 'message': 'Invalid input'}), 400
-
-    lines = [line.strip() for line in data['depots'].split('\n') if line.strip()]
-    df = pd.DataFrame({'Depot Name': lines})
-    preview = df.head().to_dict(orient="records")
-
-    return jsonify({
-        'success': True,
-        'row_count': len(df),
-        'preview': preview,
-        'full_data': df.to_dict(orient="records"),
-        'message': f'Successfully processed {len(df)} depots'
-    })
-
-@routes.route('/calculate', methods=['POST'])
-def calculate():
-    try:
-        data = request.get_json()
-        if not data or 'data' not in data or 'hubCapacities' not in data:
-            return jsonify({'success': False, 'message': 'Missing required data'}), 400
-
-        df = pd.DataFrame(data['data'])
-        hub_capacities = data['hubCapacities']
-
-        osrm = OSRMService()
-
-        # Separate driver and pickup points
-        driver_df = df[df['type'] == 'driver'].copy()
-        pickup_df = df[df['type'] == 'pickup'].copy()
-
-        # Expand hubs (which are drivers) based on their capacity
-        expanded_driver_rows = []
-        for _, row in driver_df.iterrows():
-            hub_name = row['cname']
-            capacity = int(hub_capacities.get(hub_name, 1))  # Default capacity 1
-            for _ in range(capacity):
-                expanded_driver_rows.append(row.copy())
-        expanded_driver_df = pd.DataFrame(expanded_driver_rows).reset_index(drop=True)
-
-        # Calculate distance matrix between expanded drivers and pickups
-        distance_matrix = osrm.calculate_matrix(expanded_driver_df, pickup_df)
-
-        # Pad to square matrix if needed (Hungarian needs square matrix)
-        num_drivers, num_pickups = distance_matrix.shape
-        if num_drivers > num_pickups:
-            dummy_count = num_drivers - num_pickups
-            dummy_columns = np.full((num_drivers, dummy_count), 9999.0)
-            distance_matrix = np.hstack((distance_matrix, dummy_columns))
-        elif num_pickups > num_drivers:
-            dummy_rows = np.full((num_pickups - num_drivers, num_pickups), 9999.0)
-            distance_matrix = np.vstack((distance_matrix, dummy_rows))
-
-        # Apply Hungarian algorithm
-        row_ind, col_ind = linear_sum_assignment(distance_matrix)
-        result_rows = []
-        for r, c in zip(row_ind, col_ind):
-            if r < len(expanded_driver_df) and c < len(pickup_df):
-                driver = expanded_driver_df.iloc[r]
-                pickup = pickup_df.iloc[c]
-                result_rows.append({
-                    "From Bus": driver['vno'],
-                    "Driver Site": driver['cname'],
-                    "Driver lat": driver['dlat'],
-                    "Driver lon": driver['dlon'],
-                    "Pickup Site": pickup['cname'],
-                    "Pickup lat": pickup['plat'],
-                    "Pickup lon": pickup['plon'],
-                    "Distance (m)": round(distance_matrix[r][c], 2)
+                return jsonify({
+                    'success': True,
+                    'task_id': task_id, 
+                    'preview': preview_data,
+                    'full_data': df.values.tolist(),
+                    'columns': df.columns.tolist(),
+                    'row_count': len(df),
+                    'message': f'Successfully loaded {len(df)} rows'
                 })
 
-        result_df = pd.DataFrame(result_rows)
-        csv_name = f"assignment_result_{uuid.uuid4().hex[:8]}.csv"
-        csv_path = os.path.join(EXPORT_FOLDER, csv_name)
-        result_df.to_csv(csv_path, index=False)
+            except Exception as e:
+                logger.error(f"Error processing CSV: {str(e)}")
+                return jsonify({'error': f'Error processing CSV: {str(e)}'}), 400
+        else:
+            return jsonify({'error': 'Invalid file format. Please upload a CSV file.'}), 400
+    
+    except Exception as e:
+        logger.error(f"Upload error: {str(e)}")
+        return jsonify({'error': 'An error occurred during upload'}), 500
 
-        return jsonify({
-            'success': True,
-            'row_count': len(result_df),
-            'preview': result_df.head().to_dict(orient="records"),
-            'csv_path': f'/exports/{csv_name}',
-            'message': 'Optimized assignments completed.'
-        })
+@app.route('/process_paste', methods=['POST'])
+def process_paste():
+    try:
+        data = request.get_json()
+        if not data or 'content' not in data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        content = data['content']
+        processor = DataProcessor()
+        
+        try:
+            df = processor.process_pasted_data(content)
+            preview_data = processor.get_preview_data(df)
+            
+
+            return jsonify({
+                'success': True,
+                'preview': preview_data,
+                'full_data': df.values.tolist(),
+                'row_count': len(df),
+                'message': f'Successfully processed {len(df)} rows'
+            })
+
+        except Exception as e:
+            logger.error(f"Error processing pasted data: {str(e)}")
+            return jsonify({'error': f'Error processing data: {str(e)}'}), 400
+    
+    except Exception as e:
+        logger.error(f"Process paste error: {str(e)}")
+        return jsonify({'error': 'An error occurred processing the data'}), 500
+
+@app.route('/calculate', methods=['POST'])
+def calculate_distances():
+    try:
+        data = request.get_json()
+        if not data or 'data' not in data:
+            return jsonify({'error': 'No data provided for calculation'}), 400
+        
+        df = pd.DataFrame(data['data'], columns=data.get('columns'))
+        df.columns = df.columns.str.strip()
+        task_id = data.get('task_id')  
+
+        processor = DataProcessor()
+        if not processor.validate_columns(df):
+            return jsonify({'error': 'Invalid data format. Please check required columns.'}), 400
+
+        osrm_service = OSRMService()
+        try:
+            results_df = osrm_service.calculate_batch_distances(df, task_id=task_id)
+            ordered_columns = [
+                'Institute', 'Vehicle Number',
+                'Driver pt Latitude','Driver pt Longitude',
+                '1st Pickup pt Latitude','1st Pickup pt Longitude',
+                'Distance_km', 'Duration_minutes', 'Calculation_status'
+            ]
+            results_df = results_df[ordered_columns]
+
+            results = {
+                'success': True,
+                'results': results_df.to_dict('records'),
+                'summary': {
+                    'total_routes': len(results_df),
+                    'successful_calculations': len(results_df[results_df['Distance_km'].notna()]),
+                    'failed_calculations': len(results_df[results_df['Distance_km'].isna()])
+                }
+            }
+            return jsonify(results)
+
+        except Exception as e:
+            logger.error(f"OSRM calculation error: {str(e)}")
+            return jsonify({'error': f'Error calculating distances: {str(e)}'}), 500
 
     except Exception as e:
-        logging.error(f"Calculation error: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error(f"Calculate error: {str(e)}")
+        return jsonify({'error': 'An error occurred during calculation'}), 500
 
-@routes.route('/exports/<filename>')
-def download_export(filename):
-    return send_from_directory(EXPORT_FOLDER, filename, as_attachment=True)
 
-@routes.route('/sample')
+@app.route('/optimize', methods=['POST'])
+def deadkm_optimization():
+    try:
+        data = request.get_json()
+        if not data or 'data' not in data:
+            return jsonify({'error': 'No data provided for calculation'}), 400
+        
+        df = pd.DataFrame(data['data'], columns=data.get('columns'))
+        df.columns = df.columns.str.strip()
+        task_id = data.get('task_id')  
+
+        processor = DataProcessor()
+        if not processor.validate_columns(df):
+            return jsonify({'error': 'Invalid data format. Please check required columns.'}), 400
+
+        osrm_service = OSRMService()
+        try:
+            results_df = osrm_service.calculate_batch_distances(df, task_id=task_id)
+            ordered_columns = [
+                'Institute', 'Vehicle Number',
+                'Driver pt Latitude','Driver pt Longitude',
+                '1st Pickup pt Latitude','1st Pickup pt Longitude',
+                'Distance_km', 'Duration_minutes', 'Calculation_status'
+            ]
+            results_df = results_df[ordered_columns]
+
+            results = {
+                'success': True,
+                'results': results_df.to_dict('records'),
+                'summary': {
+                    'total_routes': len(results_df),
+                    'successful_calculations': len(results_df[results_df['Distance_km'].notna()]),
+                    'failed_calculations': len(results_df[results_df['Distance_km'].isna()])
+                }
+            }
+            return jsonify(results)
+
+        except Exception as e:
+            logger.error(f"OSRM calculation error: {str(e)}")
+            return jsonify({'error': f'Error calculating distances: {str(e)}'}), 500
+
+    except Exception as e:
+        logger.error(f"Calculate error: {str(e)}")
+        return jsonify({'error': 'An error occurred during calculation'}), 500
+
+@app.route('/export/<format>')
+def export_results(format):
+    try:
+        data = request.args.get('data')
+        if not data:
+            return jsonify({'error': 'No data to export'}), 400
+        
+        results = json.loads(data)
+        df = pd.DataFrame(results)
+
+        ordered_columns = [
+                'Institute', 'Vehicle Number',
+                'Driver pt Latitude','Driver pt Longitude',
+                '1st Pickup pt Latitude','1st Pickup pt Longitude',
+                'Distance_km', 'Duration_minutes', 'Calculation_status'
+            ]
+        
+        df = df[ordered_columns] 
+
+        if format.lower() == 'csv':
+            output = io.StringIO()
+            df.to_csv(output, index=False)
+            output.seek(0)
+            
+            csv_data = io.BytesIO()
+            csv_data.write(output.getvalue().encode('utf-8'))
+            csv_data.seek(0)
+            
+            return send_file(
+                csv_data,
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name='distance_results.csv'
+            )
+        else:
+            return jsonify({'error': 'Unsupported export format'}), 400
+    
+    except Exception as e:
+        logger.error(f"Export error: {str(e)}")
+        return jsonify({'error': 'An error occurred during export'}), 500
+
+@app.route('/download-sample')
 def download_sample():
-    return send_from_directory('static', 'sample_distance_generator.csv', as_attachment=True)
+    try:
+        return send_file(
+            'static/sample_distance_generator.csv',
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='sample_distance_generator.csv'
+        )
+    except Exception as e:
+        logger.error(f"Sample download error: {str(e)}")
+        return jsonify({'error': 'Error downloading sample file'}), 500
+
+@app.errorhandler(413)
+def too_large(e):
+    return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 413
+
+@app.errorhandler(500)
+def internal_error(e):
+    logger.error(f"Internal server error: {str(e)}")
+    return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/progress/<task_id>')
+def get_progress(task_id):
+    progress = progress_tracker.get(task_id)
+    if progress:
+        return jsonify(progress)
+    return jsonify({'percent': 0, 'message': 'Starting...'})

@@ -4,11 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OSRM Distance Calculator</title>
+  <title>OSRM VRP Solver</title>
 
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
-
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
 </head>
 
 <body>
@@ -30,8 +29,9 @@
     <div class="custom-container">
       <div class="title-text">
         <div class="header">
-          <h1>Route Optimization Tool</h1>
-          <p class="lead">Upload route data and optimize driver assignments</p>
+          <h1>Route Optimization Tool- OSRM Based Vehicle Routing Problem Solver</h1>
+          <p class="lead">Upload route data, optimize driver assignments with added constraints and minimize fuel
+            wastage.</p>
         </div>
         <div class="optim-project">
         </div>
@@ -67,6 +67,73 @@
       </div>
 
       <div class="custom-row">
+        <div class="data-container">
+          <h3>Upload Your Files.</h3>
+          <div class="input-toggle">
+            <button class="btn-toggle" onclick="switchToUpload()">File Upload</button>
+            <button class="btn-toggle" onclick="switchToPaste()">Parking Locations</button>
+          </div>
+
+          <div id="upload-section" class="upload-section">
+            <div class="drag-area" id="drag-area">
+              <form id="csv-form" enctype="multipart/form-data">
+                <div class="drag-content">
+                  <img src="/uploads/upload-icon.png" width="50" class="mb-3" alt="Drag Drop" />
+                  <div class="header">Drag & Drop</div>
+                  <div class="header">
+                    or <span class="button" onclick="document.getElementById('file-input').click()">browse</span>
+                  </div>
+                  <input type="file" id="file-input" name="file" accept=".csv" hidden />
+                  <div class="support">
+                    Supports: .csv files only<br />(save excel files as .csv to upload)
+                  </div>
+                  <button type="submit" class="upload-btn">
+                    <img src="/uploads/upload-icon.png" width="16" alt="Upload CSV" />Upload CSV
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div id="paste-section" class="paste-section" style="display: none;">
+            <div class="paste-container">
+              <div class="depot-details">
+                <div class="parking-container">
+                  <label for="depot-mapping" class="depot-label">Institute-wise Depot List<br /></label>
+                  <textarea id="institute-parking" class="depot-textarea"
+                    placeholder="Eg: NPS Parking, DPS Mallasandra, MAHE Parking &#10; &#10;Disclaimer: Not Hubs like Hoodi hub/ Baghirathi Shed, where any institute bus can be parked."></textarea>
+                </div>
+                <div class="capacity-container">
+                  <div class="hub-capacity">
+                    <div class="hub">NPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">DPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">Hoodi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">VSA</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">PU</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                  <div class="hub-capacity">
+                    <div class="hub">Banaswadi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
+                  </div>
+                </div>
+              </div>
+              <div class="paste-buttons">
+                <button type="button" class="app-btn" id="process-data-btn" onclick="processDepotList()">Process
+                  Data</button>
+                <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="status" class="status-box"></div>
+        </div>
         <div id="file-stat">
           <h3>
             <img src="/uploads/required.jpg" width="24" class="project-icon" alt="Info" />Required CSV Format:
@@ -105,71 +172,8 @@
           </div>
           <br>
           <h6>Note: Please enter a list of names of depot/parking locations present in the uploaded data that are
-            <strong>institute-specific</strong>, if there are none leave it blank</h6>
-        </div>
-        <div class="data-container">
-          <h3>Upload Your Files.</h3>
-          <div class="input-toggle">
-            <button class="btn-toggle" onclick="switchToUpload()">File Upload</button>
-            <button class="btn-toggle" onclick="switchToPaste()">Parking Locations</button>
-          </div>
-
-          <div id="upload-section" class="upload-section">
-            <div class="drag-area" id="drag-area">
-              <form id="csv-form" enctype="multipart/form-data">
-                <div class="drag-content">
-                  <img src="/uploads/upload-icon.png" width="50" class="mb-3" alt="Drag Drop" />
-                  <div class="header">Drag & Drop</div>
-                  <div class="header">
-                    or <span class="button" onclick="document.getElementById('file-input').click()">browse</span>
-                  </div>
-                  <input type="file" id="file-input" name="file" accept=".csv" hidden />
-                  <div class="support">
-                    Supports: .csv files only<br />(save excel files as .csv to upload)
-                  </div>
-                  <button type="submit" class="upload-btn">
-                    <img src="/uploads/upload-icon.png" width="16" alt="Upload CSV" />Upload CSV
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <div id="paste-section" class="paste-section" style="display: none;">
-            <div class="paste-container">
-              <div class="depot-details">
-                <div class="parking-container">
-                  <label for="depot-mapping" class="depot-label">Institute-wise Depot List<br/></label>
-                  <textarea id="institute-parking" class="depot-textarea" placeholder="Eg: NPS Parking, DPS Mallasandra, MAHE Parking &#10; &#10;Disclaimer: Not Hubs like Hoodi hub/ Baghirathi Shed, where any institute bus can be parked."></textarea>
-                </div>
-                <div class="capacity-container">
-                  <div class="hub-capacity">
-                    <div class="hub">NPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">DPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">Hoodi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div><div class="hub-capacity">
-                    <div class="hub">VSA</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">PU</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">Banaswadi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                </div>
-              </div>
-              <div class="paste-buttons">
-                <button type="button" class="app-btn" id="process-data-btn" onclick="processDepotList()">Process Data</button>
-                <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
-              </div>
-            </div>
-          </div>
-
-          <div id="status" class="status-box"></div>
+            <strong>institute-specific</strong>, if there are none leave it blank
+          </h6>
         </div>
       </div>
 
@@ -182,73 +186,82 @@
       <table class="table-preview" id="preview-table"></table>
       <div class="calculate-button-wrapper">
         <button class="app-btn" onclick="calculateDistances()" id="app-btn">
-          <img src="/uploads/route.png" width="16" alt="Calculate" />Calculate Distances
-        </button>
+          <img src="/uploads/route.png" width="16" alt="Calculate" />Calculate Distances</button>
+        <button class="app-btn" id="run-optimization-btn">
+          <img src="/uploads/optim.png" width="16" alt="Calculate" />Run Optimization</button>
       </div>
     </div>
   </section>
-
   <section id="results-sect">
     <h3>Distance Calculation Results:</h3>
     <div class="results-section" id="results-section" style="display: none;">
-
       <div class="results-container">
         <div id="results-summary" class="summary"></div>
         <div class="export">
-          <button class="app-btn" onclick="exportResults()" id="export-btn">
-            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download Results
-          </button>
+          <a id="download-csv" class="app-btn" style="display: none;">
+            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download CSV
+          </a>
+          <a id="download-xlsx" class="app-btn" style="display: none;">
+            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download Insights (XLSX)
+          </a>
         </div>
       </div>
       <table class="results-table" id="results-table"></table>
     </div>
-    <div class="modal" id="progressModal" style="display: none;">
+    <div class="modal hidden" id="progressModal">
       <div class="modal-content">
         <h5 class="modal-title">Calculating Distances</h5>
-        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+        <div class="progress">
+          <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+        </div>
+        
         <p id="progress-text">Initializing calculation...</p>
       </div>
     </div>
   </section>
+
   <section id="stats-sec">
-  <div id="dashboard">
-    <ul>
-        <li><h1>Dashboard</h1><p>View your route optimization Insights</p></li>
-        <li><button class="app-btn" onclick="exportInsights()" href="project.html">Download Insights</button></li>
-    </ul>
-  </div>
-  <hr class="section-divider" />
-  <div class="info-tiles">
-    <div class="stat-tile">
-      <h3>Total Original Dead km</h3>
-      <div class="stat-value" id="total-projects-num"></div>
-      <img src="/uploads/deadkm.png" class="stat-img" />
+    <div id="dashboard">
+      <ul>
+        <li>
+          <h1>Dashboard</h1>
+          <p>View your route optimization Insights</p>
+        </li>
+        <li><button class="app-btn" id="export-insights-btn">Download Insights</button></li>
+      </ul>
     </div>
-    <div class="stat-tile">
-      <h3>Optimized Dead km</h3>
-      <div class="stat-value" id="routes-num"></div>
-      <img src="/uploads/distance_op.png" class="stat-img" />
+    <hr class="section-divider" />
+    <div class="info-tiles">
+      <div class="stat-tile">
+        <h3>Total Original Dead km</h3>
+        <div class="stat-value" id="total-projects-num"></div>
+        <img src="/uploads/deadkm.png" class="stat-img" />
+      </div>
+      <div class="stat-tile">
+        <h3>Optimized Dead km</h3>
+        <div class="stat-value" id="routes-num"></div>
+        <img src="/uploads/distance_op.png" class="stat-img" />
+      </div>
+      <div class="stat-tile">
+        <h3>Total Minimized</h3>
+        <div class="stat-value" id="savings-num"></div>
+        <img src="/uploads/reduced.png" class="stat-img" />
+      </div>
+      <div class="stat-tile">
+        <h3>No. of Routes Swapped</h3>
+        <div class="stat-value" id="routes-swapped"></div>
+        <img src="/uploads/optim.png" class="stat-img" />
+      </div>
+      <div class="stat-tile">
+        <h3>Total Swaps | <strong>Inter-Institute</strong></h3>
+        <div class="stat-value" id="inter-swaps"></div>
+      </div>
+      <div class="stat-tile">
+        <h3>Total Swaps | <strong>Intra-Institute</strong></h3>
+        <div class="stat-value" id="intra-swaps"></div>
+      </div>
     </div>
-    <div class="stat-tile">
-      <h3>Total Minimized</h3>
-      <div class="stat-value" id="savings-num"></div>
-      <img src="/uploads/reduced.png" class="stat-img" />
-    </div>
-    <div class="stat-tile">
-      <h3>No. of Routes Swapped</h3>
-      <div class="stat-value" id="savings-num"></div>
-      <img src="/uploads/optim.png" class="stat-img" />
-    </div>
-    <div class="stat-tile">
-      <h3>Total Swaps &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<strong>Inter-Institute</strong></h3>
-      <div class="stat-value" id="savings-num"></div>
-    </div>
-    <div class="stat-tile">
-      <h3>Total Swaps &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<strong>Intra-Institute</strong></h3>
-      <div class="stat-value" id="savings-num"></div>
-    </div>
-  </div>
-</section>
+  </section>
 </body>
 
 </html>

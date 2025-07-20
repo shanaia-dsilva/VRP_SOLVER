@@ -1,17 +1,19 @@
-
 let currentData = null;
 let currentResults = null;
+let taskId = null;  // ← Global task ID, reused across steps
 
 document.addEventListener('DOMContentLoaded', () => {
+    taskId = generateUUID(); 
     setupFileUpload();
     setupDragDrop();
     initializeSmartPaste();
     setupResetButton();
     document.getElementById('process-data-btn').addEventListener('click', processPastedData);
+    const modal = document.getElementById('progressModal');
+    modal.classList.add('hidden');    
+    modal.classList.remove('show');   
+    updateProgress(0, '');  
 });
-
-// =======================
-// File Upload
 
 function setupFileUpload() {
     const form = document.getElementById('csv-form');
@@ -34,6 +36,7 @@ function uploadCSV() {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('task_id', taskId); 
 
     showStatus('Uploading CSV...', 'info');
 
@@ -57,8 +60,133 @@ function uploadCSV() {
         });
 }
 
+function processPastedData() {
+    const rowCount = document.getElementById('vehicle-number').value.trim().split('\n').length;
+    const rows = [];
+
+    for (let i = 0; i < rowCount; i++) {
+        const row = pasteFieldIds.map(id =>
+            (document.getElementById(id).value.split('\n')[i] || '').trim()
+        );
+        rows.push(row.join('\t'));
+    }
+
+    const headers = [
+        'Vehicle Number', 'Institute',
+        'Point 1 latitude', 'Point 1 longitude',
+        'Point 2 latitude', 'Point 2 longitude'
+    ];
+
+    const payload = [headers.join('\t'), ...rows].join('\n');
+
+    showStatus('Processing pasted data...', 'info');
+
+    fetch('/process_paste', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: payload, task_id: taskId }) 
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                currentData = data.full_data;
+                showPreview(data.preview);
+                showStatus(`Pasted data processed. ${data.row_count} rows loaded.`, 'success');
+            } else {
+                showStatus(data.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Paste process error:', err);
+            showStatus('Error processing pasted data.', 'error');
+        });
+}
+
+async function calculateDistances() {
+    if (!currentData) return showStatus('No data loaded.', 'error');
+
+    const modal = document.getElementById('progressModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('show');
+
+    pollProgress(taskId); 
+
+    const payload = {
+        task_id: taskId,
+        data: currentData.map(row => ({
+            'Vehicle Number': row[0],
+            'Institute': row[1],
+            'Category': row[2],
+            'Route Number': row[3],
+            'Driver Employee ID': row[4],
+            'Licensed Experience (years)': row[5],
+            'Driver pt Latitude': row[6],
+            'Driver pt Longitude': row[7],
+            'Driver pt Name': row[8],
+            '1st Pickup pt Latitude': row[9],
+            '1st Pickup pt Longitude': row[10],
+            '1st Pickup pt Name': row[11]
+        }))
+    };
+
+    try {
+        const res = await fetch('/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            currentResults = data.results;
+            showResults(data);
+            updateProgress(100, 'Completed!');
+            showStatus('Distance calculation complete.', 'success');
+        } else {
+            showStatus(data.error, 'error');
+        }
+    } catch (err) {
+        console.error('Distance calculation error:', err);
+        showStatus('Error during distance calculation.', 'error');
+    } finally {
+        setTimeout(() => {
+            modal.classList.remove('show');
+            modal.classList.add('hidden');
+            updateProgress(0, '');
+        }, 1500);
+    }
+}
+let currentPollInterval = null;
+
+function pollProgress(taskId) {
+    if (currentPollInterval) {
+        clearInterval(currentPollInterval);
+    }
+
+    currentPollInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`/progress/${taskId}`);
+            const data = await res.json();
+
+            if (data.percent != null) {
+                updateProgress(data.percent, data.message || `${data.percent}% complete`);
+            }
+
+            if (data.percent >= 100) {
+                clearInterval(currentPollInterval);
+                currentPollInterval = null;
+            }
+        } catch (err) {
+            console.warn('Progress polling error:', err);
+            clearInterval(currentPollInterval);
+            currentPollInterval = null;
+        }
+    }, 1000);
+}
+
 // =======================
-// Drag & Drop
+// drag dropp
 function setupDragDrop() {
     const dragArea = document.getElementById('drag-area');
 
@@ -155,16 +283,18 @@ function initializeSmartPaste() {
             if (!pastedText.includes('\t')) return;
 
             e.preventDefault();
+            let lines = pastedText.trim().split('\n').map(line => line.split('\t'));
 
-            const lines = pastedText.trim().split('\n').map(line => line.split('\t'));
+            if (lines.every(cells => cells.length === 1)) {
+                lines = pastedText.trim().split('\n').map(line => line.trim().split(/\s{2,}|\s*\|\s*/));
+            }
 
-            // Check for headers in first row and skip
+
             const isHeaderRow = lines[0].some(cell =>
                 /vehicle|institute|lat|lon/i.test(cell)
             );
             const dataRows = isHeaderRow ? lines.slice(1) : lines;
 
-            // Fill starting from the currently focused field
             dataRows.forEach((row, rowIndex) => {
                 row.forEach((cell, offset) => {
                     const colIndex = startIndex + offset;
@@ -183,92 +313,49 @@ function initializeSmartPaste() {
 }
 
 // =======================
-function processDepotList() {
-    const textarea = document.getElementById('institute-parking');
-    if (!textarea) {
-        showStatus('Depot input field not found.', 'error');
-        return;
+function processPastedData() {
+    const rowCount = document.getElementById('vehicle-number').value.trim().split('\n').length;
+    const rows = [];
+
+    for (let i = 0; i < rowCount; i++) {
+        const row = pasteFieldIds.map(id =>
+            (document.getElementById(id).value.split('\n')[i] || '').trim()
+        );
+        rows.push(row.join('\t'));
     }
 
-    // Extract non-empty lines
-    const lines = textarea.value
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line !== '');
+    const headers = [
+        'Vehicle Number', 'Institute',
+        'Point 1 latitude', 'Point 1 longitude',
+        'Point 2 latitude', 'Point 2 longitude'
+    ];
 
-    if (lines.length === 0) {
-        showStatus('No depot names entered.', 'error');
-        return;
-    }
+    const payload = [headers.join('\t'), ...rows].join('\n');
 
-    // Prepare TSV content
-    const headers = ['institute-parking'];
-    const payload = [headers.join('\t'), ...lines].join('\n');
+    showStatus('Processing pasted data...', 'info');
 
-    showStatus('Processing depot list...', 'info');
-
-    fetch('/process_depots', {
+    fetch('/process_paste', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: payload })
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            currentData = data.full_data;
-            showStatus(`Depot list processed. ${data.row_count} entries loaded.`, 'success');
-        } else {
-            showStatus(data.error || 'Unknown error occurred.', 'error');
-        }
-    })
-    .catch(err => {
-        console.error('Depot list process error:', err);
-        showStatus('Error processing depot list.', 'error');
-    });
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                currentData = data.full_data;
+                showPreview(data.preview);
+                showStatus(`Pasted data processed. ${data.row_count} rows loaded.`, 'success');
+            } else {
+                showStatus(data.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Paste process error:', err);
+            showStatus('Error processing pasted data.', 'error');
+        });
 }
 
-
-// function processPastedData() {
-//     const rowCount = document.getElementById('vehicle-number').value.trim().split('\n').length;
-//     const rows = [];
-
-//     for (let i = 0; i < rowCount; i++) {
-//         const row = pasteFieldIds.map(id =>
-//             (document.getElementById(id).value.split('\n')[i] || '').trim()
-//         );
-//         rows.push(row.join('\t'));
-//     }
-
-//     const headers = ['institute-parking'];
-
-//     const payload = [headers.join('\t'), ...rows].join('\n');
-
-//     showStatus('Processing pasted data...', 'info');
-
-//     fetch('/process_paste', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ content: payload })
-//     })
-//         .then(res => res.json())
-//         .then(data => {
-//             if (data.success) {
-//                 currentData = data.full_data;
-//                 showPreview(data.preview);
-//                 showStatus(`Pasted data processed. ${data.row_count} rows loaded.`, 'success');
-//             } else {
-//                 showStatus(data.error, 'error');
-//             }
-//         })
-//         .catch(err => {
-//             console.error('Paste process error:', err);
-//             showStatus('Error processing pasted data.', 'error');
-//         });
-// }
-
-// =======================
-// Preview Table
-// =======================
+// =======================preview
 function showPreview(preview) {
     const table = document.getElementById('preview-table');
     const info = document.getElementById('preview-info');
@@ -305,55 +392,79 @@ function showPreview(preview) {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
 }
-
 // =======================
-// Distance Calculation
-// =======================
-function calculateDistances() {
-    if (!currentData) return showStatus('No data loaded.', 'error');
-
-    updateProgress(25, 'Sending data to server...');
-    const columns = [
-        'Vehicle Number', 'Institute',
-        'Point 1 latitude', 'Point 1 longitude',
-        'Point 2 latitude', 'Point 2 longitude',
-        'Distance_km', 'Duration_minutes'
-    ];
-    const payload = {
-    data: currentData.map(row => ({
-        'Institute': row[1],
-        'Vehicle Number': row[0],
-        'Point 1 latitude': row[2],
-        'Point 1 longitude': row[3],
-        'Point 2 latitude': row[4],
-        'Point 2 longitude': row[5]
-    }))
-};
-
-    fetch('/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                currentResults = data.results;
-                showResults(data);
-                showStatus('Distance calculation complete.', 'success');
-            } else {
-                showStatus(data.error, 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Distance calculation error:', err);
-            showStatus('Error during distance calculation.', 'error');
-        });
+// UUID  genr
+function generateUUID() {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
 }
 
 // =======================
-// Show Results Table
-// =======================
+// calculating distances
+async function calculateDistances() {
+    if (!currentData) return showStatus('No data loaded.', 'error');
+
+    const modal = document.getElementById('progressModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('show');
+
+    const taskId = generateUUID();
+    
+    pollProgress(taskId);
+
+    const payload = {
+        task_id: taskId,
+        data: currentData.map(row => ({
+            'Vehicle Number': row[0],
+            'Institute': row[1],
+            'Category': row[2],
+            'Route Number': row[3],
+            'Driver Employee ID': row[4],
+            'Licensed Experience (years)': row[5],
+            'Driver pt Latitude': row[6],
+            'Driver pt Longitude': row[7],
+            'Driver pt Name': row[8],
+            '1st Pickup pt Latitude': row[9],
+            '1st Pickup pt Longitude': row[10],
+            '1st Pickup pt Name': row[11]
+        }))
+    };
+
+    try {
+        const res = await fetch('/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            currentResults = data.results;
+            showResults(data);
+            updateProgress(100, 'Completed!');
+            showStatus('Distance calculation complete.', 'success');
+        } else {
+            showStatus(data.error, 'error');
+        }
+    } catch (err) {
+        console.error('Distance calculation error:', err);
+        showStatus('Error during distance calculation.', 'error');
+    } finally {
+        setTimeout(() => {
+            modal.classList.remove('show');
+            modal.classList.add('hidden');
+            updateProgress(0, '');
+        }, 1500);
+    }
+
+}
+
+
+
+
+// ==========
 function showResults(data) {
     const table = document.getElementById('results-table');
     const section = document.getElementById('results-section');
@@ -363,8 +474,8 @@ function showResults(data) {
 
     const columns = [
         'Vehicle Number', 'Institute',
-        'Point 1 latitude', 'Point 1 longitude',
-        'Point 2 latitude', 'Point 2 longitude',
+        'Driver pt Latitude','Driver pt Longitude',
+        '1st Pickup pt Latitude','1st Pickup pt Longitude',
         'Distance_km', 'Duration_minutes'
     ];
 
@@ -409,8 +520,6 @@ function showResults(data) {
 }
 
 // =======================
-// Export CSV
-// =======================
 function exportResults() {
     if (!currentResults) return showStatus('No results to export.', 'error');
 
@@ -430,6 +539,8 @@ function showStatus(message, type) {
     const statusBox = document.getElementById('status');
     statusBox.innerHTML = `<div class="status-${type}">${message}</div>`;
 }
+
+// document.getElementById('progressModal').classList.add('show');
 
 function updateProgress(percent, message) {
     const bar = document.getElementById('progress-bar');
