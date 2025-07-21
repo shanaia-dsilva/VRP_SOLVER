@@ -148,18 +148,31 @@ class OSRMService:
         chains = find_changed_chains(result_df['From Bus'].tolist(), result_df['To Bus'].tolist())
         logger.info(f"Optimized {len(result_df)} routes. Detected {len(chains)} swap chains.")
 
-        results = {
+        # Calculate insight metrics
+        total_routes = len(result_df)
+        total_dead_km = result_df['Optimized dead km'].sum()
+        original_dead_km = result_df['Original dead km'].sum()
+        total_minimized = original_dead_km - total_dead_km
+        total_swaps = sum(result_df['From Bus'] != result_df['To Bus'])
+        inter_institute = sum(
+            result_df['Driver Site'] != result_df['Pickup Site']
+        )
+        intra_institute = total_swaps - inter_institute
+
+        return {
             'success': True,
             'results': result_df.to_dict('records'),
             'summary': {
-                'total_routes': len(result_df),
-                'successful_calculations': len(result_df[result_df['Optimized dead km'].notna()]),
-                'failed_calculations': len(result_df[result_df['Optimized dead km'].isna()])
-            }
+                'total_routes': total_routes,
+                'original_dead_km': round(original_dead_km, 2),
+                'total_dead_km': round(total_dead_km, 2),
+                'total_minimized': round(total_minimized, 2),
+                'total_swaps': total_swaps,
+                'inter_institute': inter_institute,
+                'intra_institute': intra_institute
+            },
+            'chains': chains
         }
-
-        return result_df
-
 
     def test_connection(self):
         """Test connection to OSRM server"""

@@ -104,18 +104,7 @@ def calculate_distances():
 
         osrm_service = OSRMService()
         try:
-            results_df = osrm_service.optimize_routes_vrp(df, task_id=task_id)
-
-            results = {
-                'success': True,
-                'results': results_df.to_dict('records'),
-                'summary': {
-                    'total_routes': len(results_df),
-                    'successful_calculations': len(results_df[results_df['Optimized dead km'].notna()]),
-                    'failed_calculations': len(results_df[results_df['Optimized dead km'].isna()])
-                }
-            }
-
+            results = osrm_service.optimize_routes_vrp(df, task_id=task_id)
             return jsonify(results)
 
         except Exception as e:
@@ -125,6 +114,7 @@ def calculate_distances():
     except Exception as e:
         logger.error(f"Calculate route error: {str(e)}")
         return jsonify({'error': 'An error occurred during calculation'}), 500
+
 @app.route('/export/optimized', methods=['POST'])
 def export_optimized():
     try:

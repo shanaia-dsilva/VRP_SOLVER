@@ -137,15 +137,22 @@ async function calculateDistances() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         const data = await res.json();
-
         if (data.success) {
             currentResults = data.results;
+            currentChains = data.chains;
+
             showOptimizedAssignments(data.results);
-            updateProgress(100, 'Completed!');
-            showStatus('Distance calculation complete.', 'success');
-        } else {
+            updateInsightsDashboard(data.summary);
+            showSwapChains(data.chains);
+
+            document.getElementById('download-csv').style.display = 'inline-block';
+            document.getElementById('download-xlsx').style.display = 'inline-block';
+
+            document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        else {
             showStatus(data.error, 'error');
         }
     } catch (err) {
@@ -228,8 +235,8 @@ document.getElementById('download-csv').addEventListener('click', () => {
 });
 
 function updateInsightsDashboard(insights) {
-    document.getElementById('total-projects-num').textContent = insights.original_dead_km ?? '—';
-    document.getElementById('routes-num').textContent = insights.total_dead_km.toFixed(2);
+    document.getElementById('total-orig-sum').textContent = insights.original_dead_km ?? '—';
+    document.getElementById('optim-sum').textContent = insights.total_dead_km.toFixed(2);
     document.getElementById('savings-num').textContent = insights.total_minimized?.toFixed(2) ?? '—';
     document.getElementById('routes-swapped').textContent = insights.total_swaps;
 
@@ -247,14 +254,6 @@ function showSwapChains(chains) {
         <ul>${chainHTML}</ul>
     `;
 }
-document.getElementById('download-csv').addEventListener('click', () => {
-    if (!currentResults) return;
-    const url = `/export/optimized?data=${encodeURIComponent(JSON.stringify(currentResults))}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'optimized_assignments.csv';
-    link.click();
-});
 function pollProgress(taskId) {
     if (currentPollInterval) {
         console.log('Clearing old polling loop');

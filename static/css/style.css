@@ -388,7 +388,7 @@ h6{
   color: black;
 }
 .table-wrapper {
-  padding: 0 1rem;
+  padding: 1rem 1rem;
   font-size: small;
   font-family: 'Courier New', Courier, monospace;
   overflow-x: auto;
