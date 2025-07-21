@@ -87,17 +87,16 @@ def process_paste():
     except Exception as e:
         logger.error(f"Process paste error: {str(e)}")
         return jsonify({'error': 'An error occurred processing the data'}), 500
-
 @app.route('/calculate', methods=['POST'])
 def calculate_distances():
     try:
         data = request.get_json()
         if not data or 'data' not in data:
             return jsonify({'error': 'No data provided for calculation'}), 400
-        
+
         df = pd.DataFrame(data['data'], columns=data.get('columns'))
         df.columns = df.columns.str.strip()
-        task_id = data.get('task_id')  
+        task_id = data.get('task_id')
 
         processor = DataProcessor()
         if not processor.validate_columns(df):
@@ -105,32 +104,26 @@ def calculate_distances():
 
         osrm_service = OSRMService()
         try:
-            results_df = osrm_service.calculate_batch_distances(df, task_id=task_id)
-            ordered_columns = [
-                'Institute', 'Vehicle Number',
-                'Driver pt Latitude','Driver pt Longitude',
-                '1st Pickup pt Latitude','1st Pickup pt Longitude',
-                'Distance_km', 'Duration_minutes', 'Calculation_status'
-            ]
-            results_df = results_df[ordered_columns]
+            results_df = osrm_service.optimize_routes_vrp(df, task_id=task_id)
 
             results = {
                 'success': True,
                 'results': results_df.to_dict('records'),
                 'summary': {
                     'total_routes': len(results_df),
-                    'successful_calculations': len(results_df[results_df['Distance_km'].notna()]),
-                    'failed_calculations': len(results_df[results_df['Distance_km'].isna()])
+                    'successful_calculations': len(results_df[results_df['Optimized dead km'].notna()]),
+                    'failed_calculations': len(results_df[results_df['Optimized dead km'].isna()])
                 }
             }
+
             return jsonify(results)
 
         except Exception as e:
-            logger.error(f"OSRM calculation error: {str(e)}")
-            return jsonify({'error': f'Error calculating distances: {str(e)}'}), 500
+            logger.error(f"Dead KM optimization error: {str(e)}")
+            return jsonify({'error': f'Error during dead km optimization: {str(e)}'}), 500
 
     except Exception as e:
-        logger.error(f"Calculate error: {str(e)}")
+        logger.error(f"Calculate route error: {str(e)}")
         return jsonify({'error': 'An error occurred during calculation'}), 500
 
 @app.route('/export/<format>')
@@ -139,37 +132,38 @@ def export_results(format):
         data = request.args.get('data')
         if not data:
             return jsonify({'error': 'No data to export'}), 400
-        
+
         results = json.loads(data)
         df = pd.DataFrame(results)
 
         ordered_columns = [
-                'Institute', 'Vehicle Number',
-                'Driver pt Latitude','Driver pt Longitude',
-                '1st Pickup pt Latitude','1st Pickup pt Longitude',
-                'Distance_km', 'Duration_minutes', 'Calculation_status'
-            ]
-        
-        df = df[ordered_columns] 
+            'From Bus', 'Driver Site', 'Driver pt lat', 'Driver pt long',
+            'Driver pt name', 'Driver Route', 'Driver Experience',
+            'To Bus', 'Pickup Site', 'Pickup Category', 'Pickup Route',
+            'Pickup pt name', 'Pickup pt lat', 'Pickup pt long',
+            'Original dead km', 'Optimized dead km'
+        ]
+
+        df = df[[col for col in ordered_columns if col in df.columns]]
 
         if format.lower() == 'csv':
             output = io.StringIO()
             df.to_csv(output, index=False)
             output.seek(0)
-            
+
             csv_data = io.BytesIO()
             csv_data.write(output.getvalue().encode('utf-8'))
             csv_data.seek(0)
-            
+
             return send_file(
                 csv_data,
                 mimetype='text/csv',
                 as_attachment=True,
-                download_name='distance_results.csv'
+                download_name='optimized_assignments.csv'
             )
         else:
             return jsonify({'error': 'Unsupported export format'}), 400
-    
+
     except Exception as e:
         logger.error(f"Export error: {str(e)}")
         return jsonify({'error': 'An error occurred during export'}), 500

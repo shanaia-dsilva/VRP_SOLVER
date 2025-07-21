@@ -184,27 +184,32 @@
       <h4>Preview of your data:</h4>
       <p id="preview-info">(First 5 rows)</p>
       <table class="table-preview" id="preview-table"></table>
-      <div class="calculate-button-wrapper">
-        <button class="app-btn" onclick="calculateDistances()" id="app-btn">
-          <img src="/uploads/optim.png" width="16" alt="Calculate" />Run Optimization</button>
-      </div>
-    </div>
-  </section>
-  <section id="results-sect">
-    <h3>Distance Calculation Results:</h3>
-    <div class="results-section" id="results-section" style="display: none;">
-      <div class="results-container">
-        <div id="results-summary" class="summary"></div>
-        <div class="export">
-          <a id="download-csv" class="app-btn" style="display: none;">
-            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download CSV
-          </a>
-          <a id="download-xlsx" class="app-btn" style="display: none;">
-            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download Insights (XLSX)
-          </a>
+          <div class="calculate-button-wrapper">
+            <!-- <button type="submit" class="upload-btn">
+              <img src="/uploads/upload-icon.png" width="16" alt="Upload CSV" />Upload CSV
+            </button> -->
+            <button class="app-btn" onclick="calculateDistances()" id="app-btn">
+              <img src="/uploads/optim.png" width="16" alt="Calculate" />Optimize Assignments</button>
+          </div>
         </div>
-      </div>
-      <table class="results-table" id="results-table"></table>
+      </section>
+      <section id="results-sect">
+        <h3>Distance Calculation Results:</h3>
+        <div class="results-section" id="results-section" style="display: none;">
+          <div class="results-container">
+            <div id="results-summary" class="summary"></div>
+            <div class="export">
+              <a id="download-csv" class="app-btn">
+                <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download CSV
+              </a>
+              <a id="download-xlsx" class="app-btn">
+                <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download Insights (XLSX)
+              </a>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="results-table" id="results-table"></table>
+          </div>
     </div>
     <div class="modal hidden" id="progressModal">
       <div class="modal-content">
@@ -212,7 +217,7 @@
         <div class="progress">
           <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
         </div>
-        
+
         <p id="progress-text">Initializing calculation...</p>
       </div>
     </div>

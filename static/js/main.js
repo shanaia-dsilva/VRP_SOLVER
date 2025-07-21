@@ -142,7 +142,7 @@ async function calculateDistances() {
 
         if (data.success) {
             currentResults = data.results;
-            showResults(data);
+            showOptimizedAssignments(data.results);
             updateProgress(100, 'Completed!');
             showStatus('Distance calculation complete.', 'success');
         } else {
@@ -165,49 +165,43 @@ let currentPollInterval = null;
 let driverList = []; 
 let pickupList = [];   
 
+function showOptimizedAssignments(assignments) {
+  const section = document.getElementById('results-section');
+  const table = document.getElementById('results-table');
+  section.style.display = 'block';
+  table.innerHTML = '';
 
-async function generateDistanceMatrix() {
-    const payload = {
-        driver_data: driverList,
-        pickup_data: pickupList
-    };
+  const columns = [
+    'From Bus', 'Driver Site', 'Driver pt lat', 'Driver pt long',
+    'Driver pt name', 'Driver Route', 'Driver Experience',
+    'To Bus', 'Pickup Site', 'Pickup Category', 'Pickup Route',
+    'Pickup pt name', 'Pickup pt lat', 'Pickup pt long',
+    'Original dead km', 'Optimized dead km'
+  ];
 
-    const res = await fetch('/generate_matrix', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  columns.forEach(col => {
+    const th = document.createElement('th');
+    th.textContent = col;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  assignments.forEach(row => {
+    const tr = document.createElement('tr');
+    columns.forEach(col => {
+      const td = document.createElement('td');
+      td.textContent = row[col] !== undefined ? row[col] : '—';
+      tr.appendChild(td);
     });
-
-    const data = await res.json();
-    return data.matrix; 
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
 }
-async function optimizeAssignments(matrix) {
-    const payload = {
-        driver_data: driverList,
-        pickup_data: pickupList,
-        distance_matrix: matrix
-    };
 
-    const res = await fetch('/optimize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-        showOptimizedResults(data.assignments);
-        updateInsightsDashboard(data.insights);
-        showSwapChains(data.chains);
-    } else {
-        showStatus(data.error || 'Optimization failed.', 'error');
-    }
-}
-document.getElementById('run-optimization-btn').addEventListener('click', async () => {
-    const matrix = await generateDistanceMatrix();
-    await optimizeAssignments(matrix);
-});
 function exportOptimizedResults(data) {
     const url = `/export/optimized?data=${encodeURIComponent(JSON.stringify(data))}`;
     const link = document.createElement('a');
@@ -216,41 +210,6 @@ function exportOptimizedResults(data) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
-function showOptimizedResults(assignments) {
-    const section = document.getElementById('results-section');
-    const table = document.getElementById('results-table');
-    const summary = document.getElementById('results-summary');
-
-    table.innerHTML = '';
-    section.style.display = 'block';
-
-    const columns = ['From Bus', 'To Bus', 'Dead KM'];
-    
-    // Summary box
-    summary.innerHTML = `<strong>Total Assignments:</strong> ${assignments.length}`;
-
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    columns.forEach(col => {
-        const th = document.createElement('th');
-        th.textContent = col;
-        headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-    assignments.forEach(row => {
-        const tr = document.createElement('tr');
-        columns.forEach(col => {
-            const td = document.createElement('td');
-            td.textContent = row[col] ?? 'N/A';
-            tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
 }
 function updateInsightsDashboard(insights) {
     document.getElementById('total-projects-num').textContent = insights.original_dead_km ?? '—';
@@ -280,34 +239,6 @@ document.getElementById('download-csv').addEventListener('click', () => {
     link.download = 'optimized_assignments.csv';
     link.click();
 });
-document.getElementById('run-optimization-btn').addEventListener('click', async () => {
-    const matrix = await generateDistanceMatrix(); // assumes you have this function
-    const payload = {
-        driver_data: driverList,
-        pickup_data: pickupList,
-        distance_matrix: matrix
-    };
-
-    const res = await fetch('/optimize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-        currentResults = data.assignments;
-        showOptimizedResults(data.assignments);
-        updateInsightsDashboard(data.insights);
-        showSwapChains(data.chains);
-        document.getElementById('download-csv').style.display = 'inline-block';
-        document.getElementById('download-xlsx').style.display = 'inline-block';
-    } else {
-        showStatus(data.error || 'Optimization failed.', 'error');
-    }
-});
-
 function pollProgress(taskId) {
     if (currentPollInterval) {
         console.log('Clearing old polling loop');

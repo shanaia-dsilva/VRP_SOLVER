@@ -393,7 +393,7 @@ h6{
   font-family: 'Courier New', Courier, monospace;
   overflow-x: auto;
 }
-.table-preview {
+.table-preview , .results-table{
   width: 100%;
   font-family: 'Courier New', Courier, monospace;
   font-size: small;
@@ -402,7 +402,9 @@ h6{
   border-radius: 10px;
 }
 .table-preview th,
-.table-preview td {
+.table-preview td,
+.results-table td,
+.results-table th  {
   border: 1px solid #e5b79e;
   padding: 6px 10px;
   text-align: left;
@@ -480,12 +482,6 @@ h6{
   border: 1px solid #e5b79e;
   border-radius: 10px;
   padding: 1rem;
-}
-.results-table td,
-.results-table th {
-  border:  1px solid #e5b79e;
-  padding: 6px 10px;
-  text-align: left;
 }
 
 .app-btn,
