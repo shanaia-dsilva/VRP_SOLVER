@@ -202,15 +202,31 @@ function showOptimizedAssignments(assignments) {
   table.appendChild(tbody);
 }
 
-function exportOptimizedResults(data) {
-    const url = `/export/optimized?data=${encodeURIComponent(JSON.stringify(data))}`;
+document.getElementById('download-csv').addEventListener('click', () => {
+  if (!currentResults) return;
+
+  fetch('/export/optimized', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(currentResults)
+  })
+  .then(res => res.blob())
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = 'optimized_assignments.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
+    window.URL.revokeObjectURL(url);
+  })
+  .catch(err => {
+    console.error('Export failed:', err);
+    showStatus('Export failed.', 'error');
+  });
+});
+
 function updateInsightsDashboard(insights) {
     document.getElementById('total-projects-num').textContent = insights.original_dead_km ?? '—';
     document.getElementById('routes-num').textContent = insights.total_dead_km.toFixed(2);

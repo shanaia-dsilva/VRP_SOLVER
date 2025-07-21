@@ -125,16 +125,14 @@ def calculate_distances():
     except Exception as e:
         logger.error(f"Calculate route error: {str(e)}")
         return jsonify({'error': 'An error occurred during calculation'}), 500
-
-@app.route('/export/<format>')
-def export_results(format):
+@app.route('/export/optimized', methods=['POST'])
+def export_optimized():
     try:
-        data = request.args.get('data')
+        data = request.get_json()
         if not data:
-            return jsonify({'error': 'No data to export'}), 400
+            return jsonify({'error': 'No data received'}), 400
 
-        results = json.loads(data)
-        df = pd.DataFrame(results)
+        df = pd.DataFrame(data)
 
         ordered_columns = [
             'From Bus', 'Driver Site', 'Driver pt lat', 'Driver pt long',
@@ -143,30 +141,21 @@ def export_results(format):
             'Pickup pt name', 'Pickup pt lat', 'Pickup pt long',
             'Original dead km', 'Optimized dead km'
         ]
-
         df = df[[col for col in ordered_columns if col in df.columns]]
 
-        if format.lower() == 'csv':
-            output = io.StringIO()
-            df.to_csv(output, index=False)
-            output.seek(0)
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
 
-            csv_data = io.BytesIO()
-            csv_data.write(output.getvalue().encode('utf-8'))
-            csv_data.seek(0)
-
-            return send_file(
-                csv_data,
-                mimetype='text/csv',
-                as_attachment=True,
-                download_name='optimized_assignments.csv'
-            )
-        else:
-            return jsonify({'error': 'Unsupported export format'}), 400
-
+        return send_file(
+            io.BytesIO(output.getvalue().encode('utf-8')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='optimized_assignments.csv'
+        )
     except Exception as e:
         logger.error(f"Export error: {str(e)}")
-        return jsonify({'error': 'An error occurred during export'}), 500
+        return jsonify({'error': 'Export failed'}), 500
 
 @app.route('/download-sample')
 def download_sample():
