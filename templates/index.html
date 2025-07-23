@@ -71,7 +71,7 @@
           <h3>Upload Your Files.</h3>
           <div class="input-toggle">
             <button class="btn-toggle" onclick="switchToUpload()">File Upload</button>
-            <button class="btn-toggle" onclick="switchToPaste()">Parking Locations</button>
+            <!-- <button class="btn-toggle" onclick="switchToPaste()">Parking Locations</button> -->
           </div>
 
           <div id="upload-section" class="upload-section">
@@ -94,7 +94,7 @@
               </form>
             </div>
           </div>
-
+<!-- 
           <div id="paste-section" class="paste-section" style="display: none;">
             <div class="paste-container">
               <div class="depot-details">
@@ -130,7 +130,7 @@
                 <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <div id="status" class="status-box"></div>
         </div>
@@ -171,9 +171,9 @@
             <a href="/uploads/sample-data.csv">Download Sample CSV</a>
           </div>
           <br>
-          <h6>Note: Please enter a list of names of depot/parking locations present in the uploaded data that are
+          <!-- <h6>Note: Please enter a list of names of depot/parking locations present in the uploaded data that are
             <strong>institute-specific</strong>, if there are none leave it blank
-          </h6>
+          </h6> -->
         </div>
       </div>
 
@@ -195,16 +195,16 @@
       </section>
       <section id="results-sect">
         <h3>Distance Calculation Results:</h3>
-        <div class="results-section" id="results-section" style="display: none;">
+        <div class="results-section" id="results-section">
           <div class="results-container">
             <!-- <div id="results-summary" class="summary"></div> -->
             <div class="export">
               <a id="download-csv" class="app-btn">
                 <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download CSV
               </a>
-              <a id="download-xlsx" class="app-btn">
+              <!-- <a id="download-xlsx" class="app-btn">
                 <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download Insights (XLSX)
-              </a>
+              </a> -->
             </div>
           </div>
           <div class="table-wrapper">
@@ -230,7 +230,7 @@
           <h1>Dashboard</h1>
           <p>View your route optimization Insights</p>
         </li>
-        <li><button class="app-btn" id="export-insights-btn">Download Insights</button></li>
+        <!-- <li><button class="app-btn" id="export-insights-btn">Download Insights</button></li> -->
       </ul>
     </div>
     <hr class="section-divider" />
@@ -251,7 +251,7 @@
         <img src="/uploads/reduced.png" class="stat-img" />
       </div>
       <div class="stat-tile">
-        <h3>No. of Routes Swapped</h3>
+        <h3>No. of Routes Optimized</h3>
         <div class="stat-value" id="routes-swapped"></div>
         <img src="/uploads/optim.png" class="stat-img" />
       </div>
@@ -264,6 +264,9 @@
         <div class="stat-value" id="intra-swaps"></div>
       </div>
     </div>
+  </section>
+  <section id="swap-chains">
+    <div class="results-summary"></div>
   </section>
 </body>
 

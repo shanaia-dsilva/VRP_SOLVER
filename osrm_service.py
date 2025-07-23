@@ -1,3 +1,4 @@
+
 import requests
 import pandas as pd
 import numpy as np
@@ -51,7 +52,7 @@ class OSRMService:
         # Depot filtering logic
         depot_names = ['MAHE', 'Kannamangla village Edify World School']
         shared_depots = {'MAHE': ['MAHE'], 'Amara Jyothi Public School': ['Amar Jyothi Public School & Pre-University College']}
-        min_driver_exp = {'A+': 0, 'A': 0, 'B': 0, 'C': 0}
+        min_driver_exp = {'A+': 10, 'A': 3, 'B': 0, 'C': 0}
 
         driver_df['is_depot'] = driver_df['dname'].isin(depot_names)
         driver_df['allowed_institutes'] = driver_df.apply(

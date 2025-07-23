@@ -238,7 +238,7 @@ function updateInsightsDashboard(insights) {
     document.getElementById('total-orig-sum').textContent = insights.original_dead_km ?? '—';
     document.getElementById('optim-sum').textContent = insights.total_dead_km.toFixed(2);
     document.getElementById('savings-num').textContent = insights.total_minimized?.toFixed(2) ?? '—';
-    document.getElementById('routes-swapped').textContent = insights.total_swaps;
+    document.getElementById('routes-swapped').textContent = insights.total_swaps+" / "+insights.total_routes ;
 
     document.getElementById('inter-swaps').textContent = insights.inter_institute ?? 0;
     document.getElementById('intra-swaps').textContent = insights.intra_institute ?? 0;
