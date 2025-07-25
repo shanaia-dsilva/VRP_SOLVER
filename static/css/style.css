@@ -607,6 +607,25 @@ img {
   padding: 5px;
 }
 
+.results-summary{
+  height:100vh;
+}
+.summary {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-left: 4px solid #4caf50;
+}
+.summary ul {
+  padding-left: 20px;
+  list-style-type: none;
+}
+.summary li {
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #333;
+}
+
 @media (max-width: 1200px) {
   section {
     padding:0.5% 6%;

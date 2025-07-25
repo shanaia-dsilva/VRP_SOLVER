@@ -245,6 +245,7 @@ function updateInsightsDashboard(insights) {
 }
 function showSwapChains(chains) {
     const section = document.getElementById('results-summary');
+    console.log(chains);
     const chainHTML = chains.map(chain => {
         return `<li>🔄 ${chain.join(' → ')}</li>`;
     }).join('');

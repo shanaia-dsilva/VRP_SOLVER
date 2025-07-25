@@ -62,6 +62,7 @@ def find_changed_chains(from_buses, to_buses):
             visited.add(current)
             idx = from_buses.index(current)
             current = to_buses[idx]
-        if len(chain) > 1:
+        if len(chain) > 2:
             chains.append(chain)
+    print(chains)
     return chains

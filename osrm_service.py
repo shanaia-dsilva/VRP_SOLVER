@@ -66,6 +66,27 @@ class OSRMService:
 
         total = len(buses)
 
+        leng=np.arange(0,len(driver_df))
+        result_df = pd.DataFrame({
+            'From Bus': driver_df.index, 
+            'Driver Site':driver_df['cname'],
+            'Driver pt lat': driver_df['dlat'],
+            'Driver pt long': driver_df['dlon'],
+            'Driver pt name': driver_df['dname'],
+            'Driver Route': driver_df['route'],
+            'Driver Experience':driver_df['dexp'],
+            'To Bus': None,
+            'Pickup Site': None,
+            'Pickup Category': None,
+            'Pickup Route': None,
+            'Pickup pt name': None,
+            'Pickup pt lat': None,
+            'Pickup pt long': None,
+            'Original dead km': None,
+            'Optimized dead km': None
+        })
+
+        result_df.set_index(np.arange(1,len(driver_df)+1))
         for idx, bus in enumerate(buses):
             dlat, dlon = driver_df.loc[bus, ['dlat', 'dlon']]
             key = (dlat, dlon)
@@ -87,6 +108,7 @@ class OSRMService:
             matrix.loc[bus] = distances
             cache[key] = distances
 
+        result_df['Original dead km'] = matrix.values.diagonal()
         # Apply institute and experience constraints
         for dbus in matrix.index:
             drow = driver_df.loc[dbus]
@@ -95,14 +117,14 @@ class OSRMService:
                 for pbus in matrix.columns:
                     pinc = pickup_df.loc[pbus, 'cname']
                     if pinc not in drow['allowed_institutes']:
-                        matrix.loc[dbus, pbus] = float('inf')
+                        matrix.loc[dbus, pbus] = 100000000000
             for pbus in matrix.columns:
                 pcat = pickup_df.loc[pbus, 'category']
                 try:
                     driver_exp = float(drow['dexp'])  # Ensure it's a number
                     required_exp = float(min_driver_exp.get(pcat, 0))
                     if driver_exp < required_exp:
-                        matrix.loc[dbus, pbus] = float('inf')
+                        matrix.loc[dbus, pbus] = 100000000000
                 except Exception as e:
                     logger.warning(f"Experience check failed for driver {dbus} → pickup {pbus}: {e}")
                     matrix.loc[dbus, pbus] = float('inf')
@@ -124,30 +146,22 @@ class OSRMService:
         driver_ids = matrix.index[optim_drivers]
         pickup_ids = matrix.columns[optim_pickups]
 
-        result_df = pd.DataFrame({
-            'From Bus': driver_ids,
-            'Driver Site': driver_df.loc[driver_ids, 'cname'].values,
-            'Driver pt lat': driver_df.loc[driver_ids, 'dlat'].values,
-            'Driver pt long': driver_df.loc[driver_ids, 'dlon'].values,
-            'Driver pt name': driver_df.loc[driver_ids, 'dname'].values,
-            'Driver Route': driver_df.loc[driver_ids, 'route'].values,
-            'Driver Experience': driver_df.loc[driver_ids, 'dexp'].values,
-            'To Bus': pickup_ids,
-            'Pickup Site': pickup_df.loc[pickup_ids, 'cname'].values,
-            'Pickup Category': pickup_df.loc[pickup_ids, 'category'].values,
-            'Pickup Route': pickup_df.loc[pickup_ids, 'route'].values,
-            'Pickup pt name': pickup_df.loc[pickup_ids, 'pname'].values,
-            'Pickup pt lat': pickup_df.loc[pickup_ids, 'plat'].values,
-            'Pickup pt long': pickup_df.loc[pickup_ids, 'plon'].values,
-            'Original dead km': [matrix.at[b, b] if b in matrix.columns else None for b in driver_ids],
-            'Optimized dead km': [matrix.at[d, p] for d, p in zip(driver_ids, pickup_ids)]
-        })
+        assigned_bus=matrix.columns[optim_pickups]
+        result_df['To Bus'] = assigned_bus
+        result_df['Pickup Site'] = pickup_df.loc[assigned_bus, 'cname'].values
+        result_df['Pickup Category'] = pickup_df.loc[assigned_bus, 'category'].values
+        result_df['Pickup Route'] = pickup_df.loc[assigned_bus, 'route'].values
+        result_df['Pickup pt name'] = pickup_df.loc[assigned_bus, 'pname'].values
+        result_df['Pickup pt lat'] = pickup_df.loc[assigned_bus, 'plat'].values
+        result_df['Pickup pt long'] = pickup_df.loc[assigned_bus, 'plon'].values
+        result_df['Optimized dead km'] = matrix.values[optim_drivers, optim_pickups]
 
         if task_id:
             progress_tracker[task_id] = {'percent': 100, 'message': 'Optimization complete.'}
 
         chains = find_changed_chains(result_df['From Bus'].tolist(), result_df['To Bus'].tolist())
         logger.info(f"Optimized {len(result_df)} routes. Detected {len(chains)} swap chains.")
+        logger.info(chains)
 
         # Calculate insight metrics
         total_routes = len(result_df)
