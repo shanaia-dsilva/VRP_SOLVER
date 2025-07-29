@@ -86,7 +86,7 @@ def process_paste():
     
     except Exception as e:
         logger.error(f"Process paste error: {str(e)}")
-        return jsonify({'error': 'An error occurred processing the data'}), 500
+        return jsonify({'error': 'An error occurred processing the data'}), 00
 @app.route('/calculate', methods=['POST'])
 def calculate_distances():
     try:
@@ -109,11 +109,11 @@ def calculate_distances():
 
         except Exception as e:
             logger.error(f"Dead KM optimization error: {str(e)}")
-            return jsonify({'error': f'Error during dead km optimization: {str(e)}'}), 500
+            return jsonify({'error': f'Error during dead km optimization: {str(e)}'}), 400
 
     except Exception as e:
         logger.error(f"Calculate route error: {str(e)}")
-        return jsonify({'error': 'An error occurred during calculation'}), 500
+        return jsonify({'error': 'An error occurred during calculation'}), 400
 
 @app.route('/export/optimized', methods=['POST'])
 def export_optimized():
@@ -146,6 +146,36 @@ def export_optimized():
     except Exception as e:
         logger.error(f"Export error: {str(e)}")
         return jsonify({'error': 'Export failed'}), 500
+
+@app.route("/export/swap-details", methods=["POST"])
+def export_swap_details():
+    try:
+        data = request.get_json()
+        logger.info(f"Swap details export payload: {data}")  # DEBUG
+
+        if not data or "swap_details" not in data:
+            return jsonify({"error": "No swap details provided"}), 400
+
+        df = pd.DataFrame(data["swap_details"])
+        logger.info(f"Swap details dataframe shape: {df.shape}")  # DEBUG
+
+        if df.empty:
+            return jsonify({"error": "No data to export"}), 400
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            df.to_excel(writer, index=False, sheet_name="Swap Details")
+
+        output.seek(0)
+        return send_file(
+            output,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name="swap_details.xlsx",
+        )
+    except Exception as e:
+        logger.error(f"Swap details export error: {str(e)}")
+        return jsonify({"error": "Failed to export swap details"}), 500
 
 @app.route('/download-sample')
 def download_sample():

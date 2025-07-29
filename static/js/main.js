@@ -110,7 +110,6 @@ async function calculateDistances() {
     modal.classList.add('show');
 
     const taskId = generateUUID();
-    
     pollProgress(taskId);
 
     const payload = {
@@ -137,27 +136,34 @@ async function calculateDistances() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+
+        if (!res.ok) {
+            const text = await res.text(); 
+            throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+
         const data = await res.json();
+
         if (data.success) {
             currentResults = data.results;
-            currentChains = data.chains;
+            currentChains = data.chains || [];
+            currentChainsDetails = data.swap_details || []; 
 
             showOptimizedAssignments(data.results);
             updateInsightsDashboard(data.summary);
-            showSwapChains(data.chains);
+            showSwapChains(data.chains || []);
+            showSwapDetails(data.swap_details || []);
 
             document.getElementById('download-csv').style.display = 'inline-block';
             document.getElementById('download-xlsx').style.display = 'inline-block';
 
             document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        else {
-            showStatus(data.error, 'error');
+            showStatus('Distance calculation complete.', 'success'); // ✅ success message
+        } else {
+            showStatus(data.error || 'Calculation failed.', 'error');
         }
     } catch (err) {
         console.error('Distance calculation error:', err);
-        showStatus('Error during distance calculation.', 'error');
     } finally {
         setTimeout(() => {
             modal.classList.remove('show');
@@ -166,6 +172,7 @@ async function calculateDistances() {
         }, 1500);
     }
 }
+
 
 let currentPollInterval = null;
 
@@ -179,7 +186,7 @@ function showOptimizedAssignments(assignments) {
   table.innerHTML = '';
 
   const columns = [
-    'From Bus', 'Driver Site', 'Driver pt lat', 'Driver pt long',
+    'From Bus', 'Driver Site','Category', 'Driver pt lat', 'Driver pt long',
     'Driver pt name', 'Driver Route', 'Driver Experience',
     'To Bus', 'Pickup Site', 'Pickup Category', 'Pickup Route',
     'Pickup pt name', 'Pickup pt lat', 'Pickup pt long',
@@ -255,6 +262,65 @@ function showSwapChains(chains) {
         <ul>${chainHTML}</ul>
     `;
 }
+
+function showSwapDetails(details) {
+  const table = document.getElementById('swap-details-table');
+  table.innerHTML = ''; 
+
+  if (!details || details.length === 0) {
+    table.innerHTML = '<p>No swap details found.</p>';
+    return;
+  }
+
+  const headers = Object.keys(details[0]);
+  const thead = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+  const tbody = `<tbody>${details.map(row => `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+  table.innerHTML = thead + tbody;
+}
+function exportResultsXLSX() {
+    if (!currentResults) return showStatus('No results to export.', 'error');
+
+    const url = `/export/xlsx?data=${encodeURIComponent(JSON.stringify(currentResults))}`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'distance_results.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showStatus('Results exported successfully as XLSX!', 'success');
+}
+
+function exportSwapDetailsXLSX() {
+    if (!currentChainsDetails) {
+        return showStatus("No swap details to export.", "error");
+    }
+
+    console.log("Sending swap details:", currentChainsDetails); // DEBUG
+
+    fetch("/export/swap-details", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ swap_details: currentChainsDetails }),
+    })
+    .then((res) => {
+        if (!res.ok) throw new Error("Download failed");
+        return res.blob();
+    })
+    .then((blob) => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "swap_details.xlsx";
+        link.click();
+    })
+    .catch((err) => {
+        console.error("Export swap details error:", err);
+        showStatus("Failed to export swap details.", "error");
+    });
+}
+
+
 function pollProgress(taskId) {
     if (currentPollInterval) {
         console.log('Clearing old polling loop');

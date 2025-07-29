@@ -526,7 +526,7 @@ img {
 }
 
 #results-sect,
-#preview-section, #stats-sec{
+#preview-section, #stats-sec, #swap-chains{
   border: 1px solid lightgray;
   border-radius: 10px;
   padding: 2rem 1rem;

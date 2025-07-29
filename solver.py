@@ -66,3 +66,37 @@ def find_changed_chains(from_buses, to_buses):
             chains.append(chain)
     print(chains)
     return chains
+
+def get_swap_details(chains, optimized_df, driver_df):
+    output_rows = []
+    totals_summary = []
+
+    for i, chain in enumerate(chains, 1):
+        vehicles = chain
+        routes = [str(driver_df.loc[v, 'route']) if v in driver_df.index else 'NA' for v in vehicles]
+        institutes = [str(driver_df.loc[v, 'cname']) if v in driver_df.index else 'NA' for v in vehicles]
+        
+        # Chain header rows
+        row_chain = [f'Chain {i}'] + [''] * (len(vehicles) - 1)
+        row_vehicles = ['Vehicles'] + vehicles
+        row_routes = ['Routes'] + routes
+        row_institutes = ['Institutes'] + institutes
+        
+        output_rows.extend([row_chain, row_vehicles, row_routes, row_institutes])
+        
+        mask = optimized_df['From Bus'].isin(vehicles)
+        total_opt_dead_km = optimized_df.loc[mask, 'Optimized dead km'].sum()
+        total_orig_dead_km = optimized_df.loc[mask, 'Original dead km'].sum()
+        totals_summary.append([
+            f'Chain {i}',
+            len(vehicles),
+            round(total_opt_dead_km, 2),
+            round(total_orig_dead_km, 2)
+        ])
+    output_rows.append([''] * max(len(r) for r in output_rows))
+
+    output_rows.append(['Swap Chain', 'Count', 'Optimized km', 'Original km'])
+
+    output_rows.extend(totals_summary)
+    output_df = pd.DataFrame(output_rows)
+    return output_df
