@@ -155,10 +155,6 @@ async function calculateDistances() {
             showSwapDetails(data.swap_details || []);
 
             document.getElementById('download-csv').style.display = 'inline-block';
-            document.getElementById('download-xlsx').style.display = 'inline-block';
-
-            document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
-            showStatus('Distance calculation complete.', 'success'); // ✅ success message
         } else {
             showStatus(data.error || 'Calculation failed.', 'error');
         }
@@ -169,6 +165,9 @@ async function calculateDistances() {
             modal.classList.remove('show');
             modal.classList.add('hidden');
             updateProgress(0, '');
+            
+            document.getElementById('results-sect').scrollIntoView({ behavior: 'smooth' });
+            showStatus('Distance calculation complete.', 'success'); 
         }, 1500);
     }
 }
@@ -263,21 +262,43 @@ function showSwapChains(chains) {
     `;
 }
 
-function showSwapDetails(details) {
-  const table = document.getElementById('swap-details-table');
-  table.innerHTML = ''; 
+function showSwapDetails(data) {
+  const table=document.getElementById("swap-details-table");
+  table.innerHTML= "";
 
-  if (!details || details.length === 0) {
-    table.innerHTML = '<p>No swap details found.</p>';
+  if (!data || !data.length) {
+    table.innerHTML="<tr><td>No swap details available</td></tr>";
     return;
   }
 
-  const headers = Object.keys(details[0]);
-  const thead = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
-  const tbody = `<tbody>${details.map(row => `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  const rows = data.map((obj) => Object.values(obj));
 
-  table.innerHTML = thead + tbody;
+  let headers=rows[0];
+  if (headers.every((h) => typeof h === "string" && h.trim() !== "")) {
+    rows.shift(); 
+  } else {
+    headers = rows[0].map((_, i) => `Column ${i + 1}`);
+  }
+  const headerRow = document.createElement("tr");
+  headers.forEach((h) => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow); 
+
+  rows.forEach((row) => {
+    if (row.every((cell) => cell === null || cell === "")) return row;
+    const tr = document.createElement("tr");
+    row.forEach((cell) => {
+      const td = document.createElement("td");
+      td.textContent = cell ?? "";
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
 }
+
 function exportResultsXLSX() {
     if (!currentResults) return showStatus('No results to export.', 'error');
 
@@ -292,7 +313,7 @@ function exportResultsXLSX() {
     showStatus('Results exported successfully as XLSX!', 'success');
 }
 
-function exportSwapDetailsXLSX() {
+function exportSwapDetails() {
     if (!currentChainsDetails) {
         return showStatus("No swap details to export.", "error");
     }
@@ -311,7 +332,7 @@ function exportSwapDetailsXLSX() {
     .then((blob) => {
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "swap_details.xlsx";
+        link.download = "swap_details.csv";
         link.click();
     })
     .catch((err) => {

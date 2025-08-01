@@ -118,7 +118,7 @@ h6{
 }
 
 #description-sec {
-  margin: 1rem 8rem;
+  margin: 1rem 3rem;
 }
 .text-center {
   text-align: center;
@@ -170,7 +170,7 @@ h6{
   border: 1px solid lightgray;
   border-radius: 10px;
   padding: 1rem;
-  width: 100%;
+  width: 60vw;
 }
 #file-stat {
   background-color: beige;
@@ -178,7 +178,7 @@ h6{
   border: 1px solid lightgray;
   border-radius: 15px;
   min-height: 100%;
-  width:100%;
+  width:30%;
 }
 
 #file-stat table {
@@ -455,13 +455,14 @@ h6{
   transition: width 1s;
 }
 .process-container {
-  display: flex;
-  align-items:flex-start;
-  flex-direction: row;
+  /* display: flex;
+  align-items:center;
+  flex-direction: row; */
   gap: 2rem;
   min-height: fit-content;
   /* max-height:50vh; */
-  justify-content: space-around;
+  justify-content: space-between;
+  width:100%;
 }
 
 

@@ -172,7 +172,7 @@ class OSRMService:
         total_routes =len(result_df)
         total_dead_km =result_df['Optimized dead km'].sum()
         original_dead_km =result_df['Original dead km'].sum()
-        total_minimized=original_dead_km - total_dead_km
+        total_minimized=(original_dead_km-total_dead_km)*2
         total_swaps=sum(result_df['From Bus'] != result_df['To Bus'])
         inter_institute=sum(
             result_df['Driver Site'] != result_df['Pickup Site']

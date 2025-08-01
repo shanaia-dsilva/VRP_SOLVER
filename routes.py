@@ -147,35 +147,61 @@ def export_optimized():
         logger.error(f"Export error: {str(e)}")
         return jsonify({'error': 'Export failed'}), 500
 
-@app.route("/export/swap-details", methods=["POST"])
+
+@app.route('/export/swap-details', methods=['POST'])
 def export_swap_details():
     try:
         data = request.get_json()
-        logger.info(f"Swap details export payload: {data}")  # DEBUG
+        if not data:
+            return jsonify({'error': 'No data received'}), 400
 
-        if not data or "swap_details" not in data:
-            return jsonify({"error": "No swap details provided"}), 400
-
-        df = pd.DataFrame(data["swap_details"])
-        logger.info(f"Swap details dataframe shape: {df.shape}")  # DEBUG
-
-        if df.empty:
-            return jsonify({"error": "No data to export"}), 400
-
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-            df.to_excel(writer, index=False, sheet_name="Swap Details")
-
+        df=pd.DataFrame(data['swap_details'])
+        print(df)
+        df.columns = df.iloc[0]
+        df = df[1:] 
+        output = io.StringIO()
+        df.to_csv(output, index=False)
         output.seek(0)
+
         return send_file(
-            output,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            io.BytesIO(output.getvalue().encode('utf-8')),
+            mimetype='text/csv',
             as_attachment=True,
-            download_name="swap_details.xlsx",
+            download_name='swap_details.csv'
         )
     except Exception as e:
-        logger.error(f"Swap details export error: {str(e)}")
-        return jsonify({"error": "Failed to export swap details"}), 500
+        logger.error(f"Export error: {str(e)}")
+        return jsonify({'error': 'Export failed'}), 500
+
+# @app.route("/export/swap-details", methods=['POST'])
+# def export_swap_details():
+#     try:
+#         data = request.get_json()
+#         logger.info(f"Swap details export payload: {data}")  # DEBUG
+
+#         if not data or "swap_details" not in data:
+#             return jsonify({"error": "No swap details provided"}), 400
+
+#         df = pd.DataFrame(data["swap_details"])
+#         logger.info(f"Swap details dataframe shape: {df.shape}")  # DEBUG
+
+#         if df.empty:
+#             return jsonify({"error": "No data to export"}), 400
+
+#         output = io.BytesIO()
+#         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+#             df.to_excel(writer, index=False, sheet_name="Swap Details")
+
+#         output.seek(0)
+#         return send_file(
+#             output,
+#             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#             as_attachment=True,
+#             download_name="swap_details.xlsx",
+#         )
+#     except Exception as e:
+#         logger.error(f"Swap details export error: {str(e)}")
+#         return jsonify({"error": "Failed to export swap details"}), 500
 
 @app.route('/download-sample')
 def download_sample():

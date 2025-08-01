@@ -29,7 +29,7 @@
     <div class="custom-container">
       <div class="title-text">
         <div class="header">
-          <h1>Route Optimization Tool- OSRM Based Vehicle Routing Problem Solver</h1>
+          <h1>Route Optimization Tool</h1>
           <p class="lead">Upload route data, optimize driver assignments with added constraints and minimize fuel
             wastage.</p>
         </div>
@@ -43,29 +43,6 @@
   <section id="description-sec">
 
     <div class="process-container">
-      <div class="phase">
-        <div class="phase-card" onclick="document.getElementById('file-input').click()">
-          <img src="/uploads/upload.png" class="project-icon" alt="Upload" />
-          <p class="project-title"><strong></strong>Upload Your Data</p>
-        </div>
-        <div class="phase-card">
-          <img src="/uploads/process.png" class="project-icon" alt="Processing" />
-          <p class="project-title"><strong></strong>Data Processing</p>
-        </div>
-        <div class="phase-card">
-          <img src="/uploads/route.png" class="project-icon" alt="Calculation" />
-          <p class="project-title"><strong></strong>Distance Calculation</p>
-        </div>
-        <div class="phase-card">
-          <img src="/uploads/optimize-icon.png" class="project-icon" alt="Optimize" />
-          <p class="project-title"><strong></strong>Optimize Assignments</p>
-        </div>
-        <div class="phase-card">
-          <img src="/uploads/export-icon.png" class="project-icon" alt="Export" />
-          <p class="project-title"><strong></strong>Export Results</p>
-        </div>
-      </div>
-
       <div class="custom-row">
         <div class="data-container">
           <h3>Upload Your Files.</h3>
@@ -94,44 +71,6 @@
               </form>
             </div>
           </div>
-<!-- 
-          <div id="paste-section" class="paste-section" style="display: none;">
-            <div class="paste-container">
-              <div class="depot-details">
-                <div class="parking-container">
-                  <label for="depot-mapping" class="depot-label">Institute-wise Depot List<br /></label>
-                  <textarea id="institute-parking" class="depot-textarea"
-                    placeholder="Eg: NPS Parking, DPS Mallasandra, MAHE Parking &#10; &#10;Disclaimer: Not Hubs like Hoodi hub/ Baghirathi Shed, where any institute bus can be parked."></textarea>
-                </div>
-                <div class="capacity-container">
-                  <div class="hub-capacity">
-                    <div class="hub">NPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">DPS</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">Hoodi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">VSA</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">PU</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                  <div class="hub-capacity">
-                    <div class="hub">Banaswadi</div><input type="number" class="capacity-inp" placeholder="Capacity" />
-                  </div>
-                </div>
-              </div>
-              <div class="paste-buttons">
-                <button type="button" class="app-btn" id="process-data-btn" onclick="processDepotList()">Process
-                  Data</button>
-                <button id="reset-paste-btn" type="button" class="app-btn">Reset Fields</button>
-              </div>
-            </div>
-          </div> -->
-
           <div id="status" class="status-box"></div>
         </div>
         <div id="file-stat">
@@ -171,9 +110,6 @@
             <a href="/uploads/sample-data.csv">Download Sample CSV</a>
           </div>
           <br>
-          <!-- <h6>Note: Please enter a list of names of depot/parking locations present in the uploaded data that are
-            <strong>institute-specific</strong>, if there are none leave it blank
-          </h6> -->
         </div>
       </div>
 
@@ -185,9 +121,6 @@
       <p id="preview-info">(First 5 rows)</p>
       <table class="table-preview" id="preview-table"></table>
           <div class="calculate-button-wrapper">
-            <!-- <button type="submit" class="upload-btn">
-              <img src="/uploads/upload-icon.png" width="16" alt="Upload CSV" />Upload CSV
-            </button> -->
             <button class="app-btn" onclick="calculateDistances()" id="app-btn">
               <img src="/uploads/optim.png" width="16" alt="Calculate" />Optimize Assignments</button>
           </div>
@@ -202,9 +135,6 @@
               <a id="download-csv" class="app-btn">
                 <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download CSV
               </a>
-              <!-- <a id="download-xlsx" class="app-btn">
-                <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download Insights (XLSX)
-              </a> -->
             </div>
           </div>
           <div class="table-wrapper">
@@ -230,7 +160,6 @@
           <h1>Dashboard</h1>
           <p>View your route optimization Insights</p>
         </li>
-        <!-- <li><button class="app-btn" id="export-insights-btn">Download Insights</button></li> -->
       </ul>
     </div>
     <hr class="section-divider" />
@@ -270,7 +199,7 @@
     <div class="table-wrapper">
       <table class="results-table" id="swap-details-table"></table>
     </div>
-    <a id="download-swap-details" onclick="exportSwapDetailsXLSX()" class="app-btn">Download Swap Details (XLSX)</a>
+    <a id="download-swap-details" onclick="exportSwapDetails()" class="app-btn">Download Swap Details</a>
   </section>
 </body>
 
