@@ -6,3 +6,6 @@ time
 json
 flask
 logging
+ortools
+flask-cors
+werkzeug

@@ -166,7 +166,7 @@ async function calculateDistances() {
             modal.classList.add('hidden');
             updateProgress(0, '');
             
-            document.getElementById('results-sect').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('stats-sec').scrollIntoView({ behavior: 'smooth' });
             showStatus('Distance calculation complete.', 'success'); 
         }, 1500);
     }
@@ -255,7 +255,7 @@ function showSwapChains(chains) {
     const chainHTML = chains.map(chain => {
         return `<li>🔄 ${chain.join(' → ')}</li>`;
     }).join('');
-
+    section.innerHTML = '';
     section.innerHTML += `
         <strong>Swap Chains:</strong>
         <ul>${chainHTML}</ul>

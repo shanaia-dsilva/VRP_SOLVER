@@ -18,10 +18,11 @@
         <span>BAGHIRATHI CONNECTED AND SHARED MOBILITY INDIA PVT LTD</span>
       </div>
     </div>
-    <ul>
+    <ul class="nav-list">
       <li><a href="#dashboard-sec">Home</a></li>
-      <li><a href="#results-sect">Results</a></li>
       <li><a href="#stats-sec">Dashboard</a></li>
+      <li><a href="#swap-chains">Swaps</a></li>
+      <li><a href="#results-sect">Results</a></li>
     </ul>
   </nav>
 
@@ -120,39 +121,12 @@
       <h4>Preview of your data:</h4>
       <p id="preview-info">(First 5 rows)</p>
       <table class="table-preview" id="preview-table"></table>
-          <div class="calculate-button-wrapper">
-            <button class="app-btn" onclick="calculateDistances()" id="app-btn">
-              <img src="/uploads/optim.png" width="16" alt="Calculate" />Optimize Assignments</button>
-          </div>
-        </div>
-      </section>
-      <section id="results-sect">
-        <h3>Distance Calculation Results:</h3>
-        <div class="results-section" id="results-section">
-          <div class="results-container">
-            <!-- <div id="results-summary" class="summary"></div> -->
-            <div class="export">
-              <a id="download-csv" class="app-btn">
-                <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download CSV
-              </a>
-            </div>
-          </div>
-          <div class="table-wrapper">
-            <table class="results-table" id="results-table"></table>
-          </div>
-    </div>
-    <div class="modal hidden" id="progressModal">
-      <div class="modal-content">
-        <h5 class="modal-title">Calculating Distances</h5>
-        <div class="progress">
-          <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
-        </div>
-
-        <p id="progress-text">Initializing calculation...</p>
+      <div class="calculate-button-wrapper">
+        <button class="app-btn" onclick="calculateDistances()" id="app-btn">
+          <img src="/uploads/optim.png" width="16" alt="Calculate" />Optimize Assignments</button>
       </div>
     </div>
   </section>
-
   <section id="stats-sec">
     <div id="dashboard">
       <ul>
@@ -195,12 +169,40 @@
     </div>
   </section>
   <section id="swap-chains">
-    <div id="results-summary" class="summary"></div>
+    <div id="results-summary" class="summary"><b>Swap Details will display here after optimization.</b></div>
     <div class="table-wrapper">
       <table class="results-table" id="swap-details-table"></table>
     </div>
+    <br />
     <a id="download-swap-details" onclick="exportSwapDetails()" class="app-btn">Download Swap Details</a>
   </section>
+  <section id="results-sect">
+    <h3>Distance Calculation Results:</h3>
+    <div class="results-section" id="results-section">
+      <div class="results-container">
+        <!-- <div id="results-summary" class="summary"></div> -->
+        <div class="export">
+          <a id="download-csv" class="app-btn">
+            <img src="/uploads/export-icon.png" class="project-icon" alt="Download" />Download CSV
+          </a>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="results-table" id="results-table"></table>
+      </div>
+    </div>
+    <div class="modal hidden" id="progressModal">
+      <div class="modal-content">
+        <h5 class="modal-title">Calculating Distances</h5>
+        <div class="progress">
+          <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+        </div>
+
+        <p id="progress-text">Initializing calculation...</p>
+      </div>
+    </div>
+  </section>
+
 </body>
 
 </html>

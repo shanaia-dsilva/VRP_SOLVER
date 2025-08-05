@@ -38,9 +38,11 @@ li, a {
   font-size: smaller;
   display: flex;
   flex-direction:row ;
-  padding:0 10px 0 12px;
+  padding:0 20px 0 12px;
 }
-
+.nav-list {
+  padding:0 12px 0 0;
+}
 .custom-container {
   display: flex;
   justify-content: space-between;
@@ -78,7 +80,7 @@ li, a {
 }
 
 #nav-bar ul li a:hover {
-  color: #0048a7;
+  color: #5ca3ff;
 }
 
 
@@ -455,12 +457,8 @@ h6{
   transition: width 1s;
 }
 .process-container {
-  /* display: flex;
-  align-items:center;
-  flex-direction: row; */
   gap: 2rem;
   min-height: fit-content;
-  /* max-height:50vh; */
   justify-content: space-between;
   width:100%;
 }

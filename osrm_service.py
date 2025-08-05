@@ -100,7 +100,7 @@ class OSRMService:
                     if task_id not in progress_tracker or progress_tracker[task_id]['percent'] != percent:
                         progress_tracker[task_id]={
                             'percent': percent,
-                            'message': f'Building matrix... ({percent}%)'
+                            'message': f'Optimizing Driver Assignments... ({percent}%)'
                         }
 
             matrix.loc[bus]=distances
@@ -159,7 +159,7 @@ class OSRMService:
         result_df['Pickup pt name']=pickup_df.loc[assigned_bus, 'pname'].values
         result_df['Pickup pt lat']=pickup_df.loc[assigned_bus, 'plat'].values
         result_df['Pickup pt long']=pickup_df.loc[assigned_bus, 'plon'].values
-        result_df['Optimized dead km']=matrix.values[optim_drivers, optim_pickups]
+        result_df['Optimized dead km']=np.round(matrix.values[optim_drivers, optim_pickups] , 2)
 
         if task_id:
             progress_tracker[task_id] ={'percent': 100, 'message': 'Optimization complete.'}
