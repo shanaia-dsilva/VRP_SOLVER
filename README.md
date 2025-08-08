@@ -1,10 +1,10 @@
 # OSRM Distance Calculator
 
-A Flask web application for batch distance calculation using OpenStreetMap Routing Machine (OSRM) with support for CSV upload and copy-paste input functionality.
+A Flask web application for batch distance calculation using OpenStreetMap Routing Machine (OSRM) with support for CSV upload.
 
 ## Features
 
-- **Dual Input Methods**: Upload CSV files or paste tabular data directly
+- **Dual Input Methods**: Upload CSV files
 - **Data Validation**: Comprehensive validation for required columns and coordinate ranges
 - **Batch Processing**: Calculate distances for multiple routes simultaneously
 - **Progress Tracking**: Real-time progress indicators for batch calculations
@@ -17,3 +17,4 @@ A Flask web application for batch distance calculation using OpenStreetMap Routi
 ### Python Dependencies
 ```bash
 pip install flask pandas requests numpy
+
