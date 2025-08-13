@@ -4,32 +4,28 @@ import pandas as pd
 import numpy as np
 import logging
 import time
-from urllib.parse import urljoin
 from flask import current_app
 import uuid
 from flask import g
 
-progress_tracker ={}
+progress_tracker={}
 
 logger =logging.getLogger(__name__)
 class OSRMService:
     def __init__(self):
         self.base_url =current_app.config['OSRM_SERVER']
         self.session =requests.Session()
-        self.session.headers.update({'User-Agent': 'OSRM-VRP-Optimizer/1.0'})
 
     def osrm_distance(self, lat1, lon1, lat2, lon2):
         coords =f"{lon1},{lat1};{lon2},{lat2}"
-        url =urljoin(self.base_url, f"/route/v1/driving/{coords}")
+        url=(f"{self.base_url}/route/v1/driving/{coords}");
         try:
-            response =self.session.get(url, timeout=30)
-            response.raise_for_status()
+            response=self.session.get(url, timeout=30)
             data =response.json()
             if data.get('code') == 'Ok':
                 return data['routes'][0]['distance'] / 1000  # km
             return float('inf')
         except Exception as e:
-            logger.warning(f"OSRM error ({lat1},{lon1} to {lat2},{lon2}): {e}")
             return float('inf')
 
     def optimize_routes_vrp(self, df, task_id=None):
@@ -58,8 +54,8 @@ class OSRMService:
         )
         
         buses= driver_df.index
-        matrix= pd.DataFrame(index=buses, columns=buses, dtype=float)
-        cache= {}
+        matrix=pd.DataFrame(index=buses, columns=buses, dtype=float)
+        cache={}
 
         total= len(buses)
 
@@ -106,6 +102,7 @@ class OSRMService:
             matrix.loc[bus]=distances
             cache[key]=distances
 
+        distance_matrix=matrix
         result_df['Original dead km']=matrix.values.diagonal()
         for dbus in matrix.index:
             drow=driver_df.loc[dbus]
@@ -123,14 +120,12 @@ class OSRMService:
                     if driver_exp < required_exp:
                         matrix.loc[dbus, pbus]=100000000000
                 except Exception as e:
-                    logger.warning(f"Experience check failed for driver {dbus} → pickup {pbus}: {e}")
                     matrix.loc[dbus, pbus]=float('inf')
       
         row_inf_mask=matrix.map(np.isinf).all(axis=1)
         problematic=matrix.index[row_inf_mask]
         if not problematic.empty:
             logger.warning(f"Drivers with no viable pickups: {list(problematic)}")
-
         mask = np.isinf(matrix.to_numpy()) 
         rows_all_inf = mask.all(axis=1)    
 
@@ -162,7 +157,7 @@ class OSRMService:
         result_df['Optimized dead km']=np.round(matrix.values[optim_drivers, optim_pickups] , 2)
 
         if task_id:
-            progress_tracker[task_id] ={'percent': 100, 'message': 'Optimization complete.'}
+            progress_tracker[task_id] ={'percent':100, 'message':'Optimization complete.'}
 
         chains =find_changed_chains(result_df['From Bus'].tolist(), result_df['To Bus'].tolist())
         logger.info(f"Optimized {len(result_df)} routes. Detected {len(chains)} swap chains.")
@@ -194,19 +189,3 @@ class OSRMService:
             'chains': chains,
             'swap_details': swap_df.to_dict('records') if not swap_df.empty else [] 
         }
-
-    def test_connection(self):
-        """Test connection to OSRM server"""
-        try:
-            test_coords= "-74.0059,40.7128;-74.0060,40.7129"
-            url= urljoin(self.base_url, f"/route/v1/driving/{test_coords}")
-            
-            response =self.session.get(url, timeout=10)
-            response.raise_for_status()
-            
-            data =response.json()
-            return data.get('code') == 'Ok'
-            
-        except Exception as e:
-            logger.error(f"OSRM connection test failed: {str(e)}")
-            return False
