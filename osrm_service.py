@@ -18,13 +18,12 @@ class OSRMService:
 
     def osrm_distance(self, lat1, lon1, lat2, lon2):
         coords =f"{lon1},{lat1};{lon2},{lat2}"
-        url=(f"{self.base_url}/route/v1/driving/{coords}");
+        url=(f"{self.base_url}/route/v1/driving/{coords}")
         try:
             response=self.session.get(url, timeout=30)
             data =response.json()
             if data.get('code') == 'Ok':
-                return data['routes'][0]['distance'] / 1000  # km
-            return float('inf')
+                return data['routes'][0]['distance'] / 1000  
         except Exception as e:
             return float('inf')
 
@@ -48,9 +47,9 @@ class OSRMService:
         shared_depots={'MAHE': ['MAHE'], 'Amara Jyothi Public School': ['Amar Jyothi Public School & Pre-University College']}
         min_driver_exp= {'A+': 10, 'A': 3, 'B': 0, 'C': 0}
 
-        driver_df['is_depot']= driver_df['dname'].isin(depot_names)
+        driver_df['is_depot']=driver_df['dname'].isin(depot_names)
         driver_df['allowed_institutes']= driver_df.apply(
-            lambda row: shared_depots.get(row['dname'], [row['cname']]) if row['is_depot'] else [], axis=1
+            lambda row: shared_depots.get(row['dname'],[row['cname']]) if row['is_depot'] else [], axis=1
         )
         
         buses= driver_df.index
@@ -121,22 +120,11 @@ class OSRMService:
                         matrix.loc[dbus, pbus]=100000000000
                 except Exception as e:
                     matrix.loc[dbus, pbus]=float('inf')
-      
-        row_inf_mask=matrix.map(np.isinf).all(axis=1)
-        problematic=matrix.index[row_inf_mask]
-        if not problematic.empty:
-            logger.warning(f"Drivers with no viable pickups: {list(problematic)}")
-        mask = np.isinf(matrix.to_numpy()) 
-        rows_all_inf = mask.all(axis=1)    
+        problematic_mask = np.all(matrix.to_numpy() == 100000000000, axis=1)
 
-        if rows_all_inf.any():
-            problematic_drivers = matrix.index[rows_all_inf].tolist()
-            logger.warning(f"Drivers with no valid pickups: {problematic_drivers}")
-            for driver in problematic_drivers:
-                result_df.loc[result_df['From Bus'] == driver, [
-                    'To Bus', 'Pickup Site', 'Pickup Category', 'Pickup Route',
-                    'Pickup pt name', 'Pickup pt lat', 'Pickup pt long', 'Optimized dead km'
-                ]] = None
+        if problematic_mask.any():
+            problematic_buses = matrix.index[problematic_mask].tolist()
+            matrix.loc[problematic_buses, problematic_buses] = distance_matrix.loc[problematic_buses, problematic_buses]
 
         from scipy.optimize import linear_sum_assignment
         from solver import find_changed_chains
@@ -154,7 +142,7 @@ class OSRMService:
         result_df['Pickup pt name']=pickup_df.loc[assigned_bus, 'pname'].values
         result_df['Pickup pt lat']=pickup_df.loc[assigned_bus, 'plat'].values
         result_df['Pickup pt long']=pickup_df.loc[assigned_bus, 'plon'].values
-        result_df['Optimized dead km']=np.round(matrix.values[optim_drivers, optim_pickups] , 2)
+        result_df['Optimized dead km']=np.round(distance_matrix.values[optim_drivers, optim_pickups] , 2)
 
         if task_id:
             progress_tracker[task_id] ={'percent':100, 'message':'Optimization complete.'}
