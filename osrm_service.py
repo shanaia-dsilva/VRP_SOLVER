@@ -23,7 +23,8 @@ class OSRMService:
             response=self.session.get(url, timeout=30)
             data =response.json()
             if data.get('code') == 'Ok':
-                return data['routes'][0]['distance'] / 1000  
+                return data['routes'][0]['distance'] / 1000
+            return float('inf')  
         except Exception as e:
             return float('inf')
 
@@ -104,7 +105,7 @@ class OSRMService:
         distance_matrix=matrix.copy()
         constraint_val=10000000000
 
-        result_df['Original dead km']=matrix.values.diagonal()
+        result_df['Original dead km']=np.round(matrix.values.diagonal(),2)
         for dbus in matrix.index:
             drow=driver_df.loc[dbus]
             driver_exp=float(drow['dexp'])  
@@ -122,11 +123,11 @@ class OSRMService:
                         matrix.loc[dbus, pbus]=constraint_val
                 except Exception as e:
                     matrix.loc[dbus, pbus]=float('inf')
-        problematic_mask=np.all(matrix.to_numpy()==constraint_val, axis=1)
-
+        
+        problematic_mask = np.all(matrix.to_numpy()==constraint_val, axis=1)
         if problematic_mask.any():
-            problematic_buses=matrix.index[problematic_mask].tolist()
-            matrix.loc[problematic_buses, problematic_buses]=distance_matrix.loc[problematic_buses, problematic_buses]
+            for bus in matrix.index[problematic_mask]:
+                matrix.at[bus,bus]=distance_matrix.at[bus,bus] if pd.notna(distance_matrix.at[bus, bus]) else constraint_val
 
         from scipy.optimize import linear_sum_assignment
         from solver import find_changed_chains
