@@ -45,7 +45,7 @@ class OSRMService:
         }).set_index('bus')
         depot_names=['MAHE', 'Kannamangla village Edify World School']
         shared_depots={'MAHE': ['MAHE'], 'Amara Jyothi Public School': ['Amar Jyothi Public School & Pre-University College']}
-        min_driver_exp= {'A+': 10, 'A': 3, 'B': 0, 'C': 0}
+        min_driver_exp= {'A+': 10, 'A': 0, 'B': 0, 'C': 0}
 
         driver_df['is_depot']=driver_df['dname'].isin(depot_names)
         driver_df['allowed_institutes']= driver_df.apply(
@@ -101,7 +101,9 @@ class OSRMService:
             matrix.loc[bus]=distances
             cache[key]=distances
 
-        distance_matrix=matrix
+        distance_matrix=matrix.copy()
+        constraint_val=10000000000
+
         result_df['Original dead km']=matrix.values.diagonal()
         for dbus in matrix.index:
             drow=driver_df.loc[dbus]
@@ -110,21 +112,21 @@ class OSRMService:
                 for pbus in matrix.columns:
                     pinc=pickup_df.loc[pbus, 'cname']
                     if pinc not in drow['allowed_institutes']:
-                        matrix.loc[dbus, pbus]=100000000000
+                        matrix.loc[dbus, pbus]=constraint_val
             for pbus in matrix.columns:
                 pcat=pickup_df.loc[pbus, 'category']
                 try:
                     driver_exp=float(drow['dexp'])  
                     required_exp=float(min_driver_exp.get(pcat, 0))
                     if driver_exp < required_exp:
-                        matrix.loc[dbus, pbus]=100000000000
+                        matrix.loc[dbus, pbus]=constraint_val
                 except Exception as e:
                     matrix.loc[dbus, pbus]=float('inf')
-        problematic_mask = np.all(matrix.to_numpy() == 100000000000, axis=1)
+        problematic_mask=np.all(matrix.to_numpy()==constraint_val, axis=1)
 
         if problematic_mask.any():
-            problematic_buses = matrix.index[problematic_mask].tolist()
-            matrix.loc[problematic_buses, problematic_buses] = distance_matrix.loc[problematic_buses, problematic_buses]
+            problematic_buses=matrix.index[problematic_mask].tolist()
+            matrix.loc[problematic_buses, problematic_buses]=distance_matrix.loc[problematic_buses, problematic_buses]
 
         from scipy.optimize import linear_sum_assignment
         from solver import find_changed_chains
